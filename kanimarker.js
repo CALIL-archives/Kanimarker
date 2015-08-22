@@ -35,15 +35,17 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.setHeadingUp = function(newValue) {
-    this.headingUp = newValue;
-    this.cancelAnimation();
-    if (this.position != null) {
-      this.map.getView().setCenter(this.position.slice());
+    if (this.headingUp !== newValue) {
+      this.headingUp = newValue;
+      this.cancelAnimation();
+      if (this.position != null) {
+        this.map.getView().setCenter(this.position.slice());
+      }
+      if (this.direction != null) {
+        this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
+      }
+      return this.map.render();
     }
-    if (this.direction != null) {
-      this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
-    }
-    return this.map.render();
   };
 
   Kanimarker.prototype.setPosition = function(toPosition, accuracy, silent) {
@@ -107,6 +109,7 @@ Kanimarker = (function() {
       };
     }
     if ((fromPosition != null) && (toPosition == null)) {
+      this.moveAnimationState_ = null;
       this.fadeInOutAnimationState_ = {
         start: new Date(),
         from: 1,
@@ -164,14 +167,8 @@ Kanimarker = (function() {
     }
   };
 
-
-  /*
-    現在地マーカーの向きを設定する.
-    @param newDirection {Number} 真北からの角度
-   */
-
   Kanimarker.prototype.setDirection = function(newDirection, silent) {
-    var _this, n, virtualDirection;
+    var n, virtualDirection;
     if (silent == null) {
       silent = false;
     }
@@ -190,7 +187,6 @@ Kanimarker = (function() {
         virtualDirection = this.direction + (360 - n);
       }
     }
-    _this = this;
     this.directionAnimationState_ = {
       start: new Date(),
       from: this.direction,
@@ -203,7 +199,6 @@ Kanimarker = (function() {
           this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
           return true;
         } else {
-          _this.directionAnimationState_ = null;
           return false;
         }
       }
@@ -213,11 +208,6 @@ Kanimarker = (function() {
       return this.map.render();
     }
   };
-
-
-  /*
-    @private ol.Map on postcompose イベントリスナー ol.Map on から呼ばれる
-   */
 
   Kanimarker.prototype.postcompose_ = function(event) {
     var accuracy, circleStyle, context, direction, frameState, iconStyle, opacity, pixel, pixelRatio, position, vectorContext;
@@ -246,9 +236,13 @@ Kanimarker = (function() {
         this.fadeInOutAnimationState_ = null;
       }
     }
-    if ((this.directionAnimationState_ != null) && this.directionAnimationState_.animate(frameState.time)) {
-      direction = this.directionAnimationState_.current;
-      frameState.animate = true;
+    if (this.directionAnimationState_ != null) {
+      if (this.directionAnimationState_.animate(frameState.time)) {
+        direction = this.directionAnimationState_.current;
+        frameState.animate = true;
+      } else {
+        this.directionAnimationState_ = null;
+      }
     }
     if (this.accuracyAnimationState_ != null) {
       if (this.accuracyAnimationState_.animate(frameState.time)) {
@@ -260,6 +254,7 @@ Kanimarker = (function() {
     }
     if (position != null) {
       circleStyle = new ol.style.Circle({
+        snapToPixel: false,
         radius: (accuracy / frameState.viewState.resolution) * pixelRatio,
         fill: new ol.style.Fill({
           color: "rgba(56, 149, 255, " + (0.2 * opacity) + ")"
@@ -305,60 +300,49 @@ Kanimarker = (function() {
       context.stroke();
       context.restore();
     }
-    $('#debug').text(JSON.stringify({
-      '現在地ステータス': kanimarker.position,
-      '回転': kanimarker.direction,
-      '円のサイズ': kanimarker.accuracy,
-      '表示/非表示': (kanimarker.position != null) ? '表示' : '非表示',
-      '表示モード': kanimarker.headingUp ? '追従モード' : 'ビューモード',
-      '移動中': (kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
-      '回転中': (kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
-      '円の拡大/縮小': (kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
-      '表示/非表示': (kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'
+    return $('#debug').text(JSON.stringify({
+      '現在地': kanimarker.position,
+      '方向': kanimarker.direction,
+      '計測精度': kanimarker.accuracy,
+      'モード': kanimarker.headingUp ? '追従モード' : 'ビューモード',
+      '移動': (kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
+      '回転': (kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
+      '計測精度': (kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
+      'フェードイン・アウト': (kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'
     }, null, 2));
   };
-
-
-  /*
-    @private ol.Map on precompose イベントリスナー ol.Map on から呼ばれる
-   */
 
   Kanimarker.prototype.precompose_ = function(event) {
     var direction, frameState, position;
     frameState = event.frameState;
-    if (this.position != null) {
-      if (this.headingUp) {
-        position = this.position;
-        direction = this.direction;
-        if (this.moveAnimationState_ != null) {
-          if (this.moveAnimationState_.animate(frameState.time)) {
-            position = this.moveAnimationState_.current;
-          } else {
-            this.map.getView().setCenter(this.position.slice());
-          }
+    if ((this.position != null) && this.headingUp) {
+      position = this.position;
+      direction = this.direction;
+      if (this.moveAnimationState_ != null) {
+        if (this.moveAnimationState_.animate(frameState.time)) {
+          position = this.moveAnimationState_.current;
+        } else {
+          this.map.getView().setCenter(this.position.slice());
+          this.moveAnimationState_ = null;
         }
-        if (this.directionAnimationState_ != null) {
-          if (this.directionAnimationState_.animate(frameState.time)) {
-            direction = this.directionAnimationState_.current;
-          } else {
-            this.map.getView().setRotation(-(direction / 180 * Math.PI));
-          }
-        }
-        frameState.viewState.center[0] = position[0];
-        frameState.viewState.center[1] = position[1];
-        frameState.viewState.rotation = -(direction / 180 * Math.PI);
       }
+      if (this.directionAnimationState_ != null) {
+        if (this.directionAnimationState_.animate(frameState.time)) {
+          direction = this.directionAnimationState_.current;
+        } else {
+          this.map.getView().setRotation(-(direction / 180 * Math.PI));
+          this.directionAnimationState_ = null;
+        }
+      }
+      frameState.viewState.center[0] = position[0];
+      frameState.viewState.center[1] = position[1];
+      return frameState.viewState.rotation = -(direction / 180 * Math.PI);
     }
   };
 
-
-  /*
-    @private マップがドラッグされた時に呼ばれる
-   */
-
   Kanimarker.prototype.pointerdrag_ = function() {
     if (this.headingUp) {
-      this.setHeadingUp(false);
+      return this.setHeadingUp(false);
     }
   };
 

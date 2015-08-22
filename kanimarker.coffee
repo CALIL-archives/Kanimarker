@@ -57,13 +57,14 @@ class Kanimarker
   # @param newValue {Boolean} する:true, しない: false
   #
   setHeadingUp: (newValue)->
-    @headingUp = newValue
-    @cancelAnimation()
-    if @position?
-      @map.getView().setCenter(@position.slice())
-    if @direction?
-      @map.getView().setRotation(-(@direction / 180 * Math.PI))
-    @map.render()
+    if @headingUp != newValue
+      @headingUp = newValue
+      @cancelAnimation()
+      if @position?
+        @map.getView().setCenter(@position.slice())
+      if @direction?
+        @map.getView().setRotation(-(@direction / 180 * Math.PI))
+      @map.render()
 
   # 現在地を設定する
   #
@@ -121,6 +122,7 @@ class Kanimarker
 
     # フェードアウト
     if fromPosition? and not toPosition?
+      @moveAnimationState_ = null
       @fadeInOutAnimationState_ =
         start: new Date()
         from: 1
@@ -140,7 +142,7 @@ class Kanimarker
 
   # 計測精度を設定する
   #
-  # @param accuracy {Array} 計測精度（単位はメートル）
+  # @param accuracy {Number} 計測精度（単位はメートル）
   # @param silent {Boolean} 再描画抑制フラグ
   #
   setAccuracy: (accuracy, silent = false)->
@@ -167,14 +169,14 @@ class Kanimarker
     if not silent
       @map.render()
 
-  ###
-    現在地マーカーの向きを設定する.
-    @param newDirection {Number} 真北からの角度
-  ###
-  setDirection: (newDirection, silent = off)->
-
-    # アニメーションのための仮想的な角度
-    # 左回りの場合はvirtualDirectionはマイナスの値になることがある
+  # マーカーの向きを設定する
+  #
+  # @param newDirection {Number} 真北からの角度
+  # @param silent {Boolean} 再描画抑制フラグ
+  #
+  setDirection: (newDirection, silent = false)->
+    # アニメーションのための仮想的な角度を計算
+    # 左回りの場合はマイナスの値をとる場合がある
     if newDirection > @direction
       n = newDirection - @direction
       if n <= 180
@@ -188,7 +190,6 @@ class Kanimarker
       else
         virtualDirection = @direction + (360 - n) # 右回り 360 - n度回る
 
-    _this = this
     @directionAnimationState_ =
       start: new Date()
       from: @direction
@@ -197,21 +198,18 @@ class Kanimarker
 
       animate: (frameStateTime)->
         time = (frameStateTime - @start) / 500
-
         if time <= 1
           @current = @from + ((@to - @from) * ol.easing.easeOut(time))
           return true
         else
-          _this.directionAnimationState_ = null # アニメーションが終わると消滅する
           return false
 
     @direction = newDirection
+
     if not silent
       @map.render()
 
-  ###
-    @private ol.Map on postcompose イベントリスナー ol.Map on から呼ばれる
-  ###
+  # @nodoc マップ描画後の処理
   postcompose_: (event)->
     context = event.context
     vectorContext = event.vectorContext
@@ -242,9 +240,12 @@ class Kanimarker
         @fadeInOutAnimationState_=null
 
     # 回転アニメーション
-    if @directionAnimationState_? and @directionAnimationState_.animate(frameState.time)
-      direction = @directionAnimationState_.current
-      frameState.animate = true # アニメーションを続ける
+    if @directionAnimationState_?
+      if @directionAnimationState_.animate(frameState.time)
+        direction = @directionAnimationState_.current
+        frameState.animate = true # アニメーションを続ける
+      else
+        @directionAnimationState_=null
 
     # 円アニメーション
     if @accuracyAnimationState_?
@@ -258,6 +259,7 @@ class Kanimarker
     if position?
       # 円
       circleStyle = new ol.style.Circle(
+        snapToPixel: false
         radius: (accuracy / frameState.viewState.resolution) * pixelRatio
         fill: new ol.style.Fill(
           color: "rgba(56, 149, 255, #{0.2 * opacity})")
@@ -314,27 +316,20 @@ class Kanimarker
       context.restore() #キャンバスのステートを復帰(必ず実行すること)
 
     $('#debug').text(JSON.stringify(
-      '現在地ステータス': kanimarker.position
-      '回転': kanimarker.direction
-      '円のサイズ': kanimarker.accuracy
-      '表示/非表示': `(kanimarker.position != null) ? '表示' : '非表示'`
-      '表示モード': `kanimarker.headingUp ? '追従モード' : 'ビューモード'`
-      '移動中': `(kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-      '回転中': `(kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-      '円の拡大/縮小': `(kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-      '表示/非表示': `(kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+      '現在地': kanimarker.position
+      '方向': kanimarker.direction
+      '計測精度': kanimarker.accuracy
+      'モード': `kanimarker.headingUp ? '追従モード' : 'ビューモード'`
+      '移動': `(kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+      '回転': `(kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+      '計測精度': `(kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+      'フェードイン・アウト': `(kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
     , null, 2))
 
-    return
-
-  ###
-    @private ol.Map on precompose イベントリスナー ol.Map on から呼ばれる
-  ###
+  # @nodoc マップ描画前の処理
   precompose_: (event)->
     frameState = event.frameState
-    if @position?
-      # 現在地を中心に固定
-      if @headingUp
+    if @position? and @headingUp
         position = @position
         direction = @direction
 
@@ -345,6 +340,7 @@ class Kanimarker
           else
             # ラスト1回はView本体の中心を上書き(renderを呼び続けないための対策)
             @map.getView().setCenter(@position.slice())
+            @moveAnimationState_=null
 
         # 回転アニメーション
         if @directionAnimationState_?
@@ -353,18 +349,13 @@ class Kanimarker
           else
             # ラスト1回はView本体の回転方向を上書き(renderを呼び続けないための対策)
             @map.getView().setRotation(-(direction / 180 * Math.PI))
+            @directionAnimationState_=null
 
-        # レイヤーに反映
         frameState.viewState.center[0] = position[0]
         frameState.viewState.center[1] = position[1]
-
         frameState.viewState.rotation = -(direction / 180 * Math.PI)
-    return
 
-  ###
-    @private マップがドラッグされた時に呼ばれる
-  ###
+  # @nodoc ドラッグイベントの処理
   pointerdrag_: ->
     if @headingUp
       @setHeadingUp(false)
-    return

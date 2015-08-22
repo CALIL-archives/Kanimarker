@@ -138,7 +138,7 @@
       </a>
     </span>
     <span class='desc'>
-      現在地の周りの円の大きさを変える 
+      計測精度を設定する 
     </span>
   </li>
   <li>
@@ -150,43 +150,7 @@
       </a>
     </span>
     <span class='desc'>
-      現在地マーカーの向きを設定する. 
-    </span>
-  </li>
-  <li>
-    <span class='signature'>
-      <a href='#postcompose_-dynamic'>
-        #
-(void)
-<b>postcompose_</b><span>(event)</span>
-      </a>
-    </span>
-    <span class='note private title'>Private</span>
-    <span class='desc'>
-    </span>
-  </li>
-  <li>
-    <span class='signature'>
-      <a href='#precompose_-dynamic'>
-        #
-(void)
-<b>precompose_</b><span>(event)</span>
-      </a>
-    </span>
-    <span class='note private title'>Private</span>
-    <span class='desc'>
-    </span>
-  </li>
-  <li>
-    <span class='signature'>
-      <a href='#pointerdrag_-dynamic'>
-        #
-(void)
-<b>pointerdrag_</b><span>()</span>
-      </a>
-    </span>
-    <span class='note private title'>Private</span>
-    <span class='desc'>
+      マーカーの向きを設定する 
     </span>
   </li>
 </ul>
@@ -314,7 +278,7 @@
       <br>
     </p>
     <div class='docstring'>
-  <p>現在地の周りの円の大きさを変える</p>
+  <p>計測精度を設定する</p>
 </div>
 <div class='tags'>
   <h3>Parameters:</h3>
@@ -327,7 +291,7 @@
         )
       </span>
       &mdash;
-      <span class='desc'>広さ (メートル) </span>
+      <span class='desc'>計測精度（単位はメートル） </span>
     </li>
     <li>
       <span class='name'>silent</span>
@@ -337,7 +301,7 @@
         )
       </span>
       &mdash;
-      <span class='desc'>renderをしない時に true にする. default: false </span>
+      <span class='desc'>再描画抑制フラグ </span>
     </li>
   </ul>
 </div>
@@ -350,7 +314,7 @@
       <br>
     </p>
     <div class='docstring'>
-  <p>現在地マーカーの向きを設定する.</p>
+  <p>マーカーの向きを設定する</p>
 </div>
 <div class='tags'>
   <h3>Parameters:</h3>
@@ -365,46 +329,23 @@
       &mdash;
       <span class='desc'>真北からの角度 </span>
     </li>
+    <li>
+      <span class='name'>silent</span>
+      <span class='type'>
+        (
+          <tt>Boolean</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>再描画抑制フラグ </span>
+    </li>
   </ul>
-</div>
-  </div>
-  <div class='method_details'>
-    <p class='signature' id='postcompose_-dynamic'>
-      #
-(void)
-<b>postcompose_</b><span>(event)</span>
-      <span class='note private'>Private</span>
-      <br>
-    </p>
-    <div class='tags'>
-</div>
-  </div>
-  <div class='method_details'>
-    <p class='signature' id='precompose_-dynamic'>
-      #
-(void)
-<b>precompose_</b><span>(event)</span>
-      <span class='note private'>Private</span>
-      <br>
-    </p>
-    <div class='tags'>
-</div>
-  </div>
-  <div class='method_details'>
-    <p class='signature' id='pointerdrag_-dynamic'>
-      #
-(void)
-<b>pointerdrag_</b><span>()</span>
-      <span class='note private'>Private</span>
-      <br>
-    </p>
-    <div class='tags'>
 </div>
   </div>
 </div>
     </div>
     <div id='footer'>
-  August 22, 15 23:24:15 by
+  August 23, 15 00:11:27 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
