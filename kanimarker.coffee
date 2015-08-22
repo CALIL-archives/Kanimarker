@@ -1,97 +1,81 @@
-###
-  OpenLayers 3 でマーカーを表示するクラス
+#
+#  現在地マーカーを表示するOpenLayers3プラグイン
+#
+#  @author sakai@calil.jp
+#  @author ryuuji@calil.jp
+#
 
-  @example マーカーを 表示/非表示 する
-    kanimarker = new Kanimarker(map)
-    kanimarker.setPosition(point, accuracy = 50)
-    kanimarker.setPosition(null)
-
-  @author sakai@calil.jp
-  @version 1.2
-###
 class Kanimarker
 
-  deepCopy = (object)->
-    return JSON.parse(JSON.stringify(object))
-
-  # @property [ol.Map] ◯ OpenLayers3 マップオブジェクト
+  # @property [ol.Map] マップオブジェクト（読み込み専用）
   map: null
 
-  # @property [Boolean] ◯ ヘディングアップしているかどうか (している: true, してない: false)
+  # @property [Boolean] 追従モードの状態（読み込み専用）
   headingUp: false
 
-  # @property [Array<Number>] ◯ マーカーの現在の位置 (マーカーが非表示の時: null)
+  # @property [Array<Number>] マーカーの位置（読み込み専用）
   position: null
 
-  # @property [Number] ◯ マーカーの向き (0 - 360)
-  direction: null
+  # @property [Number] マーカーの角度（読み込み専用）
+  direction: 0
 
-  # @property [Number] ◯ 円のサイズ (メートル)
-  accuracy: null
+  # @property [Number] 計測精度・メートル（読み込み専用）
+  accuracy: 0
 
-  # @property [Function] ◯ 移動アニメーション postcompose, precompose から呼ばれる (アニメーションしていない時: null)
-  positionAnimation: null
+  # @nodoc アニメーション用の内部ステート
+  moveAnimationState_: null
 
-  # @property [Function] ◯ 回転アニメーション postcompose, precompose から呼ばれる (アニメーションしていない時: null)
-  directionAnimation: null
+  # @nodoc アニメーション用の内部ステート
+  directionAnimationState_: null
 
-  # @property [Function] ◯ 円のサイズ変更アニメーション postcompose から呼ばれる (アニメーションしていない時: null)
-  circleAnimation: null
+  # @nodoc アニメーション用の内部ステート
+  accuracyAnimationState_: null
 
-  # @property [Function] 表示/非表示アニメーション postcompose, から呼ばれる (アニメーションしていない時: null)
-  opacityAnimation: null
+  # @nodoc アニメーション用の内部ステート
+  fadeInOutAnimationState_: null
 
-  ###
-    mapを指定してマーカーを生成
-    @param @map {ol.Map} - OpenLayers3 マップオブジェクト
-    @classdesc OpenLayers3に現在地マーカーを表示するクラス.
-    @constructor
-  ###
-  constructor: (@map)->
-    @accuracy = 0
-    @direction = 0
-
+  # 現在地マーカーをマップにインストールする
+  #
+  # @param map {ol.Map} マップオブジェクト
+  #
+  constructor: (map)->
+    @map=map
     @map.on('postcompose', @postcompose_, this)
     @map.on('precompose', @precompose_, this)
     @map.on('pointerdrag', @pointerdrag_, this)
 
-  ###
-    現在地を常に中心, マーカーの向きを画面上向きにするかどうかを設定する.
-    @param headingUp {Boolean} する:true, しない: false
-    @return 成功: true
-  ###
-  setHeadingUp: (newHeadingUp = false)->
-    @headingUp = newHeadingUp
+  # 現在進行中のアニメーションをキャンセルする
+  #
+  cancelAnimation: ->
+    @moveAnimationState_ = null
+    @directionAnimationState_ = null
+    @accuracyAnimationState_ = null
+    @fadeInOutAnimationState_ = null
 
-    # ヘディングアップへ変わったら再描画する
-    if @headingUp
-      @positionAnimation = null
-      @directionAnimation = null
-      if @position?
-        @map.getView().setCenter(deepCopy(@position))
-      if @direction?
-        @map.getView().setRotation(-(@direction / 180 * Math.PI))
-    return true
-
-  # 現在のマーカーのいちへ移動
-  # @nodoc
-  toCurrentPosition: ->
+  # 追従モードの設定をする
+  #
+  # @param newValue {Boolean} する:true, しない: false
+  #
+  setHeadingUp: (newValue)->
+    @headingUp = newValue
+    @cancelAnimation()
     if @position?
-      @map.getView().setCenter(deepCopy(@position))
-    return
+      @map.getView().setCenter(@position.slice())
+    if @direction?
+      @map.getView().setRotation(-(@direction / 180 * Math.PI))
+    @map.render()
 
-  ###
-    現在地マーカーを移動する
-    @param toPosition {Array} 現在地を描画する座標
-    @param accuracy {Number} 円の広さ (メートル) 指定がない場合は変更されない
-    @param silent {Boolean} renderをしない時に true にする. default: false
-  ###
+  # 現在地を設定する
+  # @param toPosition {Array} 新しい現在地
+  # @param accuracy {Number} 計測精度 nullの場合は前回の値を維持
+  # @param silent {Boolean} 再描画抑制フラグ
+  #
   setPosition: (toPosition, accuracy, silent = false)->
     _this = this
 
-    if @positionAnimation?
-      fromPosition = @positionAnimation.current
-      @positionAnimation = null
+    if @moveAnimationState_?
+      fromPosition = @moveAnimationState_.current
+      @moveAnimationState_ = null
     else
       fromPosition = @position
 
@@ -101,12 +85,12 @@ class Kanimarker
 
     if toPosition? and fromPosition?
       # 移動
-      @positionAnimation =
+      @moveAnimationState_ =
         start: new Date()
-        from: deepCopy(fromPosition)
-        current: deepCopy(fromPosition)
-        to: deepCopy(toPosition)
-
+        from: fromPosition.slice()
+        current: fromPosition.slice()
+        to: toPosition.slice()
+　　　　
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / 2000
 
@@ -115,16 +99,16 @@ class Kanimarker
             @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))
             return true
           else
-            _this.positionAnimation = null # アニメーションが終わると消滅する
+            _this.moveAnimationState_ = null # アニメーションが終わると消滅する
             return false
 
     else if toPosition?
       # 表示
-      if @opacityAnimation?
-        from = @opacityAnimation.current
+      if @fadeInOutAnimationState_?
+        from = @fadeInOutAnimationState_.current
       else
         from = 0
-      @opacityAnimation =
+      @fadeInOutAnimationState_ =
         start: new Date()
         from: from
         current: from
@@ -138,16 +122,16 @@ class Kanimarker
             @current = @from + ((@to - @from) * ((x)-> x)(time))
             return true
           else
-            _this.opacityAnimation = null # アニメーションが終わると消滅する
+            _this.fadeInOutAnimationState_ = null # アニメーションが終わると消滅する
             return false
 
     else
       # 非表示
-      if @opacityAnimation?
-        from = @opacityAnimation.current
+      if @fadeInOutAnimationState_?
+        from = @fadeInOutAnimationState_.current
       else
         from = 1
-      @opacityAnimation =
+      @fadeInOutAnimationState_ =
         start: new Date()
         from: from
         current: from
@@ -161,7 +145,7 @@ class Kanimarker
             @current = @from + ((@to - @from) * ((x)-> x)(time))
             return true
           else
-            _this.opacityAnimation = null # アニメーションが終わると消滅する
+            _this.fadeInOutAnimationState_ = null # アニメーションが終わると消滅する
             return false
 
     @position = toPosition
@@ -186,13 +170,13 @@ class Kanimarker
     _this = this
 
     # 前のアニメーションのキャンセル
-    if @circleAnimation?
-      from = @circleAnimation.current
-      @circleAnimation = null
+    if @accuracyAnimationState_?
+      from = @accuracyAnimationState_.current
+      @accuracyAnimationState_ = null
     else
       from = @accuracy
 
-    @circleAnimation =
+    @accuracyAnimationState_ =
       start: new Date()
       from: from
       current: from
@@ -204,7 +188,7 @@ class Kanimarker
           @current = @from + ((_this.accuracy - @from) * ol.easing.easeOut(time))
           return true
         else
-          _this.circleAnimation = null # アニメーションが終わると消滅する
+          _this.accuracyAnimationState_ = null # アニメーションが終わると消滅する
           return false
 
     # 最新の値にする
@@ -235,7 +219,7 @@ class Kanimarker
         virtualDirection = @direction + (360 - n) # 右回り 360 - n度回る
 
     _this = this
-    @directionAnimation =
+    @directionAnimationState_ =
       start: new Date()
       from: @direction
       current: @direction
@@ -248,7 +232,7 @@ class Kanimarker
           @current = @from + ((@to - @from) * ol.easing.easeOut(time))
           return true
         else
-          _this.directionAnimation = null # アニメーションが終わると消滅する
+          _this.directionAnimationState_ = null # アニメーションが終わると消滅する
           return false
 
     @direction = newDirection
@@ -271,25 +255,25 @@ class Kanimarker
     direction = @direction
 
     # 位置アニメーション
-    if @positionAnimation? and @positionAnimation.animate(frameState.time)
-      position = @positionAnimation.current
+    if @moveAnimationState_? and @moveAnimationState_.animate(frameState.time)
+      position = @moveAnimationState_.current
       frameState.animate = true # アニメーションを続ける
 
     # 回転アニメーション
-    if @directionAnimation? and @directionAnimation.animate(frameState.time)
-      direction = @directionAnimation.current
+    if @directionAnimationState_? and @directionAnimationState_.animate(frameState.time)
+      direction = @directionAnimationState_.current
       frameState.animate = true # アニメーションを続ける
 
     # 表示/非表示アニメーション
-    if @opacityAnimation? and @opacityAnimation.animate(frameState.time)
-      opacity = @opacityAnimation.current
-      position = @opacityAnimation.animationPosition
+    if @fadeInOutAnimationState_? and @fadeInOutAnimationState_.animate(frameState.time)
+      opacity = @fadeInOutAnimationState_.current
+      position = @fadeInOutAnimationState_.animationPosition
       frameState.animate = true # アニメーションを続ける
 
     # 円アニメーション
-    if @circleAnimation? and @circleAnimation.animate(frameState.time)
+    if @accuracyAnimationState_? and @accuracyAnimationState_.animate(frameState.time)
       # アニメーション中
-      accuracy = @circleAnimation.current
+      accuracy = @accuracyAnimationState_.current
       frameState.animate = true # アニメーションを続ける
 
     # 非表示以外なら描画
@@ -357,10 +341,10 @@ class Kanimarker
       '円のサイズ': kanimarker.accuracy
       '表示/非表示': `(kanimarker.position != null) ? '表示' : '非表示'`
       '表示モード': `kanimarker.headingUp ? '追従モード' : 'ビューモード'`
-      '移動中': `(kanimarker.positionAnimation != null) ? 'アニメーション中' : 'アニメーションなし'`
-      '回転中': `(kanimarker.directionAnimation != null) ? 'アニメーション中' : 'アニメーションなし'`
-      '円の拡大/縮小': `(kanimarker.circleAnimation != null) ? 'アニメーション中' : 'アニメーションなし'`
-      '表示/非表示': `(kanimarker.opacityAnimation != null) ? 'アニメーション中' : 'アニメーションなし'`
+      '移動中': `(kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+      '回転中': `(kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+      '円の拡大/縮小': `(kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+      '表示/非表示': `(kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
     , null, 2))
 
     return
@@ -377,17 +361,17 @@ class Kanimarker
         direction = @direction
 
         # 位置アニメーション
-        if @positionAnimation?
-          if @positionAnimation.animate(frameState.time)
-            position = @positionAnimation.current
+        if @moveAnimationState_?
+          if @moveAnimationState_.animate(frameState.time)
+            position = @moveAnimationState_.current
           else
             # ラスト1回はView本体の中心を上書き(renderを呼び続けないための対策)
-            @map.getView().setCenter(deepCopy(@position))
+            @map.getView().setCenter(@position.slice())
 
         # 回転アニメーション
-        if @directionAnimation?
-          if @directionAnimation.animate(frameState.time)
-            direction = @directionAnimation.current
+        if @directionAnimationState_?
+          if @directionAnimationState_.animate(frameState.time)
+            direction = @directionAnimationState_.current
           else
             # ラスト1回はView本体の回転方向を上書き(renderを呼び続けないための対策)
             @map.getView().setRotation(-(direction / 180 * Math.PI))

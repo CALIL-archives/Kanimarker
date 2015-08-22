@@ -33,33 +33,6 @@
           <td>kanimarker.coffee</td>
         </tr>
       </table>
-      <h2>Overview</h2>
-      <div class='docstring'>
-  <p>OpenLayers 3 でマーカーを表示するクラス</p>
-  <div class='examples'>
-    <h3>Examples:</h3>
-    <h4>
-      マーカーを 表示&#47;非表示 する
-    </h4>
-    <pre><code class='coffeescript'>kanimarker = new Kanimarker(map)
-kanimarker.setPosition(point, accuracy = 50)
-kanimarker.setPosition(null)</code></pre>
-  </div>
-</div>
-<div class='tags'>
-  <h3>Author:</h3>
-  <ul class='author'>
-    <li>
-      sakai@calil.jp 
-    </li>
-  </ul>
-  <h3>Version:</h3>
-  <ul class='version'>
-    <li>
-      1.2 
-    </li>
-  </ul>
-</div>
       <h2>Property Summary</h2>
       <dl class='properties'>
         <dt id='map-property'>
@@ -71,7 +44,7 @@ kanimarker.setPosition(null)</code></pre>
           </span>
         </dt>
         <dd class='desc'>
-          ◯ OpenLayers3 マップオブジェクト 
+          マップオブジェクト（読み込み専用） 
         </dd>
         <dt id='headingUp-property'>
           <span class='signature'>
@@ -82,7 +55,7 @@ kanimarker.setPosition(null)</code></pre>
           </span>
         </dt>
         <dd class='desc'>
-          ◯ ヘディングアップしているかどうか (している: true, してない: false) 
+          追従モードの状態（読み込み専用） 
         </dd>
         <dt id='position-property'>
           <span class='signature'>
@@ -93,7 +66,7 @@ kanimarker.setPosition(null)</code></pre>
           </span>
         </dt>
         <dd class='desc'>
-          ◯ マーカーの現在の位置 (マーカーが非表示の時: null) 
+          マーカーの位置（読み込み専用） 
         </dd>
         <dt id='direction-property'>
           <span class='signature'>
@@ -104,7 +77,7 @@ kanimarker.setPosition(null)</code></pre>
           </span>
         </dt>
         <dd class='desc'>
-          ◯ マーカーの向き (0 - 360) 
+          マーカーの角度（読み込み専用） 
         </dd>
         <dt id='accuracy-property'>
           <span class='signature'>
@@ -115,65 +88,47 @@ kanimarker.setPosition(null)</code></pre>
           </span>
         </dt>
         <dd class='desc'>
-          ◯ 円のサイズ (メートル) 
-        </dd>
-        <dt id='positionAnimation-property'>
-          <span class='signature'>
-            (Function)
-            <b>
-              positionAnimation
-            </b>
-          </span>
-        </dt>
-        <dd class='desc'>
-          ◯ 移動アニメーション postcompose, precompose から呼ばれる (アニメーションしていない時: null) 
-        </dd>
-        <dt id='directionAnimation-property'>
-          <span class='signature'>
-            (Function)
-            <b>
-              directionAnimation
-            </b>
-          </span>
-        </dt>
-        <dd class='desc'>
-          ◯ 回転アニメーション postcompose, precompose から呼ばれる (アニメーションしていない時: null) 
-        </dd>
-        <dt id='circleAnimation-property'>
-          <span class='signature'>
-            (Function)
-            <b>
-              circleAnimation
-            </b>
-          </span>
-        </dt>
-        <dd class='desc'>
-          ◯ 円のサイズ変更アニメーション postcompose から呼ばれる (アニメーションしていない時: null) 
-        </dd>
-        <dt id='opacityAnimation-property'>
-          <span class='signature'>
-            (Function)
-            <b>
-              opacityAnimation
-            </b>
-          </span>
-        </dt>
-        <dd class='desc'>
-          表示/非表示アニメーション postcompose, から呼ばれる (アニメーションしていない時: null) 
+          計測精度・メートル（読み込み専用） 
         </dd>
       </dl>
+      <h2>Class Method Summary</h2>
+      <ul class='summary'>
+  <li>
+    <span class='signature'>
+      <a href='#deepCopy-static'>
+        .
+(void)
+<b>deepCopy</b><span>(object)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+</ul>
       <h2>Instance Method Summary</h2>
       <ul class='summary'>
   <li>
     <span class='signature'>
-      <a href='#setHeadingUp-dynamic'>
+      <a href='#cancelAnimation-dynamic'>
         #
-(?)
-<b>setHeadingUp</b><span>(newHeadingUp = false)</span>
+(void)
+<b>cancelAnimation</b><span>()</span>
       </a>
     </span>
     <span class='desc'>
-      現在地を常に中心, マーカーの向きを画面上向きにするかどうかを設定する. 
+      現在進行中のアニメーションをキャンセルする 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#setHeadingUp-dynamic'>
+        #
+(void)
+<b>setHeadingUp</b><span>(newValue)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      追従モードの設定をする 
     </span>
   </li>
   <li>
@@ -185,7 +140,7 @@ kanimarker.setPosition(null)</code></pre>
       </a>
     </span>
     <span class='desc'>
-      現在地マーカーを移動する 
+      現在地を設定する 
     </span>
   </li>
   <li>
@@ -261,6 +216,18 @@ kanimarker.setPosition(null)</code></pre>
     </span>
   </li>
 </ul>
+      <h2>Class Method Details</h2>
+      <div class='methods'>
+  <div class='method_details'>
+    <p class='signature' id='deepCopy-static'>
+      .
+(void)
+<b>deepCopy</b><span>(object)</span>
+      <br>
+    </p>
+    
+  </div>
+</div>
       <h2>Constructor Details</h2>
       <div class='methods'>
   <div class='method_details'>
@@ -271,24 +238,20 @@ kanimarker.setPosition(null)</code></pre>
       <br>
     </p>
     <div class='docstring'>
-  <p>mapを指定してマーカーを生成
-@classdesc OpenLayers3に現在地マーカーを表示するクラス.
-@constructor</p>
+  <p>現在地マーカーをマップにインストールする</p>
 </div>
 <div class='tags'>
   <h3>Parameters:</h3>
   <ul class='param'>
     <li>
-      <span class='name'>@map</span>
+      <span class='name'>map</span>
       <span class='type'>
         (
           <tt>ol.Map</tt>
         )
       </span>
       &mdash;
-      <span class='desc'><ul> OpenLayers3 マップオブジェクト
-</ul>
-</span>
+      <span class='desc'>マップオブジェクト </span>
     </li>
   </ul>
 </div>
@@ -297,20 +260,33 @@ kanimarker.setPosition(null)</code></pre>
       <h2>Instance Method Details</h2>
       <div class='methods'>
   <div class='method_details'>
-    <p class='signature' id='setHeadingUp-dynamic'>
+    <p class='signature' id='cancelAnimation-dynamic'>
       #
-(?)
-<b>setHeadingUp</b><span>(newHeadingUp = false)</span>
+(void)
+<b>cancelAnimation</b><span>()</span>
       <br>
     </p>
     <div class='docstring'>
-  <p>現在地を常に中心, マーカーの向きを画面上向きにするかどうかを設定する.</p>
+  <p>現在進行中のアニメーションをキャンセルする</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='setHeadingUp-dynamic'>
+      #
+(void)
+<b>setHeadingUp</b><span>(newValue)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>追従モードの設定をする</p>
 </div>
 <div class='tags'>
   <h3>Parameters:</h3>
   <ul class='param'>
     <li>
-      <span class='name'>headingUp</span>
+      <span class='name'>newValue</span>
       <span class='type'>
         (
           <tt>Boolean</tt>
@@ -318,17 +294,6 @@ kanimarker.setPosition(null)</code></pre>
       </span>
       &mdash;
       <span class='desc'>する:true, しない: false </span>
-    </li>
-  </ul>
-  <h3>Returns:</h3>
-  <ul class='return'>
-    <li>
-      <span class='type'></span>
-      (
-        <tt>?</tt>
-      )
-      &mdash;
-      <span class='desc'>成功: true 現在地、または角度がセットされていない: false </span>
     </li>
   </ul>
 </div>
@@ -341,7 +306,7 @@ kanimarker.setPosition(null)</code></pre>
       <br>
     </p>
     <div class='docstring'>
-  <p>現在地マーカーを移動する</p>
+  <p>現在地を設定する</p>
 </div>
 <div class='tags'>
   <h3>Parameters:</h3>
@@ -354,7 +319,7 @@ kanimarker.setPosition(null)</code></pre>
         )
       </span>
       &mdash;
-      <span class='desc'>現在地を描画する座標 </span>
+      <span class='desc'>新しい現在地 </span>
     </li>
     <li>
       <span class='name'>accuracy</span>
@@ -364,7 +329,7 @@ kanimarker.setPosition(null)</code></pre>
         )
       </span>
       &mdash;
-      <span class='desc'>円の広さ (メートル) 指定がない場合は変更されない </span>
+      <span class='desc'>計測精度 nullの場合は前回の値を維持 </span>
     </li>
     <li>
       <span class='name'>silent</span>
@@ -374,7 +339,7 @@ kanimarker.setPosition(null)</code></pre>
         )
       </span>
       &mdash;
-      <span class='desc'>renderをしない時に true にする. default: false </span>
+      <span class='desc'>再描画抑制フラグ </span>
     </li>
   </ul>
 </div>
@@ -491,7 +456,7 @@ kanimarker.setPosition(null)</code></pre>
 </div>
     </div>
     <div id='footer'>
-  August 22, 15 14:51:11 by
+  August 22, 15 22:30:35 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
