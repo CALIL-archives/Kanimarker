@@ -34,7 +34,7 @@ class Kanimarker
   # @nodoc アニメーション用の内部ステート
   fadeInOutAnimationState_: null
 
-  # 現在地マーカーをマップにインストールする
+  # マップに現在地マーカーをインストールする
   #
   # @param map {ol.Map} マップオブジェクト
   #
@@ -66,133 +66,103 @@ class Kanimarker
     @map.render()
 
   # 現在地を設定する
+  #
   # @param toPosition {Array} 新しい現在地
   # @param accuracy {Number} 計測精度 nullの場合は前回の値を維持
   # @param silent {Boolean} 再描画抑制フラグ
   #
   setPosition: (toPosition, accuracy, silent = false)->
-    _this = this
+    # 変化がない場合は何もしない
+    if (toPosition? and @position? and toPosition[0]==@position[0] and toPosition[1]==@position[1]) or (not toPosition? and not @position?)
+      if accuracy?
+         @setAccuracy(accuracy,silent)
+      return
+    if accuracy?
+      @setAccuracy(accuracy,true)
 
+    # 移動中の場合は中間地点からスタートする
     if @moveAnimationState_?
       fromPosition = @moveAnimationState_.current
-      @moveAnimationState_ = null
     else
       fromPosition = @position
+    @position = toPosition
 
-    if toPosition == fromPosition
-      # 何もしない
-      return
-
-    if toPosition? and fromPosition?
-      # 移動
+    # スタート地点から目的地に移動する
+    if fromPosition? and toPosition?
       @moveAnimationState_ =
         start: new Date()
         from: fromPosition.slice()
         current: fromPosition.slice()
         to: toPosition.slice()
-　　　　
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / 2000
-
           if time <= 1
             @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time))
             @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))
             return true
           else
-            _this.moveAnimationState_ = null # アニメーションが終わると消滅する
             return false
 
-    else if toPosition?
-      # 表示
-      if @fadeInOutAnimationState_?
-        from = @fadeInOutAnimationState_.current
-      else
-        from = 0
+    # フェードイン
+    if not fromPosition? and toPosition?
       @fadeInOutAnimationState_ =
         start: new Date()
-        from: from
-        current: from
+        from: 0
+        current: 0
         to: 1
         animationPosition: toPosition
-
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / 500
-
           if time <= 1
             @current = @from + ((@to - @from) * ((x)-> x)(time))
             return true
           else
-            _this.fadeInOutAnimationState_ = null # アニメーションが終わると消滅する
             return false
 
-    else
-      # 非表示
-      if @fadeInOutAnimationState_?
-        from = @fadeInOutAnimationState_.current
-      else
-        from = 1
+    # フェードアウト
+    if fromPosition? and not toPosition?
       @fadeInOutAnimationState_ =
         start: new Date()
-        from: from
-        current: from
+        from: 1
+        current: 1
         to: 0
         animationPosition: fromPosition
-
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / 500
-
           if time <= 1
             @current = @from + ((@to - @from) * ((x)-> x)(time))
             return true
           else
-            _this.fadeInOutAnimationState_ = null # アニメーションが終わると消滅する
             return false
-
-    @position = toPosition
 
     if not silent
       @map.render()
-    return
 
-  ###
-    現在地マーカーを非表示にする.
-    表示するにはsetPosition()で現在地の場所を決める
-  ###
-  hide: ->
-    @setPosition(null)
-
-  ###
-    現在地の周りの円の大きさを変える
-    @param accuracy {Number} 広さ (メートル)
-    @param silent {Boolean} renderをしない時に true にする. default: false
-  ###
+  # 計測精度を設定する
+  #
+  # @param accuracy {Array} 計測精度（単位はメートル）
+  # @param silent {Boolean} 再描画抑制フラグ
+  #
   setAccuracy: (accuracy, silent = false)->
-    _this = this
-
-    # 前のアニメーションのキャンセル
+    # アニメーション中の場合は中間値からスタート
     if @accuracyAnimationState_?
       from = @accuracyAnimationState_.current
-      @accuracyAnimationState_ = null
     else
       from = @accuracy
+    @accuracy = accuracy
 
     @accuracyAnimationState_ =
       start: new Date()
       from: from
+      to: accuracy
       current: from
-
       animate: (frameStateTime)->
         time = (frameStateTime - @start) / 2000
-
         if time <= 1
-          @current = @from + ((_this.accuracy - @from) * ol.easing.easeOut(time))
+          @current = @from + ((@to - @from) * ol.easing.easeOut(time))
           return true
         else
-          _this.accuracyAnimationState_ = null # アニメーションが終わると消滅する
           return false
-
-    # 最新の値にする
-    @accuracy = accuracy
 
     if not silent
       @map.render()
@@ -255,26 +225,34 @@ class Kanimarker
     direction = @direction
 
     # 位置アニメーション
-    if @moveAnimationState_? and @moveAnimationState_.animate(frameState.time)
-      position = @moveAnimationState_.current
-      frameState.animate = true # アニメーションを続ける
+    if @moveAnimationState_?
+      if @moveAnimationState_.animate(frameState.time)
+        position = @moveAnimationState_.current
+        frameState.animate = true # アニメーションを続ける
+      else
+        @moveAnimationState_=null
+
+    # フェードインアウトアニメーション
+    if @fadeInOutAnimationState_?
+      if @fadeInOutAnimationState_.animate(frameState.time)
+        opacity = @fadeInOutAnimationState_.current
+        position = @fadeInOutAnimationState_.animationPosition
+        frameState.animate = true # アニメーションを続ける
+      else
+        @fadeInOutAnimationState_=null
 
     # 回転アニメーション
     if @directionAnimationState_? and @directionAnimationState_.animate(frameState.time)
       direction = @directionAnimationState_.current
       frameState.animate = true # アニメーションを続ける
 
-    # 表示/非表示アニメーション
-    if @fadeInOutAnimationState_? and @fadeInOutAnimationState_.animate(frameState.time)
-      opacity = @fadeInOutAnimationState_.current
-      position = @fadeInOutAnimationState_.animationPosition
-      frameState.animate = true # アニメーションを続ける
-
     # 円アニメーション
-    if @accuracyAnimationState_? and @accuracyAnimationState_.animate(frameState.time)
-      # アニメーション中
-      accuracy = @accuracyAnimationState_.current
-      frameState.animate = true # アニメーションを続ける
+    if @accuracyAnimationState_?
+      if @accuracyAnimationState_.animate(frameState.time)
+        accuracy = @accuracyAnimationState_.current
+        frameState.animate = true # アニメーションを続ける
+      else
+        @accuracyAnimationState_=null
 
     # 非表示以外なら描画
     if position?

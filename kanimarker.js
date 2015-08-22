@@ -47,21 +47,26 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.setPosition = function(toPosition, accuracy, silent) {
-    var _this, from, fromPosition;
+    var fromPosition;
     if (silent == null) {
       silent = false;
     }
-    _this = this;
+    if (((toPosition != null) && (this.position != null) && toPosition[0] === this.position[0] && toPosition[1] === this.position[1]) || ((toPosition == null) && (this.position == null))) {
+      if (accuracy != null) {
+        this.setAccuracy(accuracy, silent);
+      }
+      return;
+    }
+    if (accuracy != null) {
+      this.setAccuracy(accuracy, true);
+    }
     if (this.moveAnimationState_ != null) {
       fromPosition = this.moveAnimationState_.current;
-      this.moveAnimationState_ = null;
     } else {
       fromPosition = this.position;
     }
-    if (toPosition === fromPosition) {
-      return;
-    }
-    if ((toPosition != null) && (fromPosition != null)) {
+    this.position = toPosition;
+    if ((fromPosition != null) && (toPosition != null)) {
       this.moveAnimationState_ = {
         start: new Date(),
         from: fromPosition.slice(),
@@ -75,21 +80,16 @@ Kanimarker = (function() {
             this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.easeOut(time));
             return true;
           } else {
-            _this.moveAnimationState_ = null;
             return false;
           }
         }
       };
-    } else if (toPosition != null) {
-      if (this.fadeInOutAnimationState_ != null) {
-        from = this.fadeInOutAnimationState_.current;
-      } else {
-        from = 0;
-      }
+    }
+    if ((fromPosition == null) && (toPosition != null)) {
       this.fadeInOutAnimationState_ = {
         start: new Date(),
-        from: from,
-        current: from,
+        from: 0,
+        current: 0,
         to: 1,
         animationPosition: toPosition,
         animate: function(frameStateTime) {
@@ -101,21 +101,16 @@ Kanimarker = (function() {
             })(time));
             return true;
           } else {
-            _this.fadeInOutAnimationState_ = null;
             return false;
           }
         }
       };
-    } else {
-      if (this.fadeInOutAnimationState_ != null) {
-        from = this.fadeInOutAnimationState_.current;
-      } else {
-        from = 1;
-      }
+    }
+    if ((fromPosition != null) && (toPosition == null)) {
       this.fadeInOutAnimationState_ = {
         start: new Date(),
-        from: from,
-        current: from,
+        from: 1,
+        current: 1,
         to: 0,
         animationPosition: fromPosition,
         animate: function(frameStateTime) {
@@ -127,64 +122,43 @@ Kanimarker = (function() {
             })(time));
             return true;
           } else {
-            _this.fadeInOutAnimationState_ = null;
             return false;
           }
         }
       };
     }
-    this.position = toPosition;
     if (!silent) {
-      this.map.render();
+      return this.map.render();
     }
   };
 
-
-  /*
-    現在地マーカーを非表示にする.
-    表示するにはsetPosition()で現在地の場所を決める
-   */
-
-  Kanimarker.prototype.hide = function() {
-    return this.setPosition(null);
-  };
-
-
-  /*
-    現在地の周りの円の大きさを変える
-    @param accuracy {Number} 広さ (メートル)
-    @param silent {Boolean} renderをしない時に true にする. default: false
-   */
-
   Kanimarker.prototype.setAccuracy = function(accuracy, silent) {
-    var _this, from;
+    var from;
     if (silent == null) {
       silent = false;
     }
-    _this = this;
     if (this.accuracyAnimationState_ != null) {
       from = this.accuracyAnimationState_.current;
-      this.accuracyAnimationState_ = null;
     } else {
       from = this.accuracy;
     }
+    this.accuracy = accuracy;
     this.accuracyAnimationState_ = {
       start: new Date(),
       from: from,
+      to: accuracy,
       current: from,
       animate: function(frameStateTime) {
         var time;
         time = (frameStateTime - this.start) / 2000;
         if (time <= 1) {
-          this.current = this.from + ((_this.accuracy - this.from) * ol.easing.easeOut(time));
+          this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
           return true;
         } else {
-          _this.accuracyAnimationState_ = null;
           return false;
         }
       }
     };
-    this.accuracy = accuracy;
     if (!silent) {
       return this.map.render();
     }
@@ -255,22 +229,34 @@ Kanimarker = (function() {
     position = this.position;
     accuracy = this.accuracy;
     direction = this.direction;
-    if ((this.moveAnimationState_ != null) && this.moveAnimationState_.animate(frameState.time)) {
-      position = this.moveAnimationState_.current;
-      frameState.animate = true;
+    if (this.moveAnimationState_ != null) {
+      if (this.moveAnimationState_.animate(frameState.time)) {
+        position = this.moveAnimationState_.current;
+        frameState.animate = true;
+      } else {
+        this.moveAnimationState_ = null;
+      }
+    }
+    if (this.fadeInOutAnimationState_ != null) {
+      if (this.fadeInOutAnimationState_.animate(frameState.time)) {
+        opacity = this.fadeInOutAnimationState_.current;
+        position = this.fadeInOutAnimationState_.animationPosition;
+        frameState.animate = true;
+      } else {
+        this.fadeInOutAnimationState_ = null;
+      }
     }
     if ((this.directionAnimationState_ != null) && this.directionAnimationState_.animate(frameState.time)) {
       direction = this.directionAnimationState_.current;
       frameState.animate = true;
     }
-    if ((this.fadeInOutAnimationState_ != null) && this.fadeInOutAnimationState_.animate(frameState.time)) {
-      opacity = this.fadeInOutAnimationState_.current;
-      position = this.fadeInOutAnimationState_.animationPosition;
-      frameState.animate = true;
-    }
-    if ((this.accuracyAnimationState_ != null) && this.accuracyAnimationState_.animate(frameState.time)) {
-      accuracy = this.accuracyAnimationState_.current;
-      frameState.animate = true;
+    if (this.accuracyAnimationState_ != null) {
+      if (this.accuracyAnimationState_.animate(frameState.time)) {
+        accuracy = this.accuracyAnimationState_.current;
+        frameState.animate = true;
+      } else {
+        this.accuracyAnimationState_ = null;
+      }
     }
     if (position != null) {
       circleStyle = new ol.style.Circle({
