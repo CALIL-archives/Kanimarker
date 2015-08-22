@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "kanimarker.js",
+  "sourceRoot": "",
+  "sources": [
+    "kanimarker.coffee"
+  ],
+  "names": [],
+  "mappings": ""
+}
