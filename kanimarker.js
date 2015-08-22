@@ -20,6 +20,8 @@ Kanimarker = (function() {
 
   Kanimarker.prototype.fadeInOutAnimationState_ = null;
 
+  Kanimarker.prototype._debug = false;
+
   function Kanimarker(map) {
     this.map = map;
     this.map.on('postcompose', this.postcompose_, this);
@@ -32,6 +34,11 @@ Kanimarker = (function() {
     this.directionAnimationState_ = null;
     this.accuracyAnimationState_ = null;
     return this.fadeInOutAnimationState_ = null;
+  };
+
+  Kanimarker.prototype.showDebugInfomation = function(newValue) {
+    this._debug = newValue;
+    return this.map.render();
   };
 
   Kanimarker.prototype.setHeadingUp = function(newValue) {
@@ -68,7 +75,7 @@ Kanimarker = (function() {
       fromPosition = this.position;
     }
     this.position = toPosition;
-    if (this.headingUp) {
+    if (this.headingUp && (toPosition != null)) {
       this.map.getView().setCenter(toPosition.slice());
     }
     if ((fromPosition != null) && (toPosition != null)) {
@@ -219,7 +226,7 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.postcompose_ = function(event) {
-    var accuracy, circleStyle, context, direction, frameState, iconStyle, opacity, pixel, pixelRatio, position, vectorContext;
+    var accuracy, circleStyle, context, debugText, direction, frameState, iconStyle, opacity, pixel, pixelRatio, position, vectorContext;
     context = event.context;
     vectorContext = event.vectorContext;
     frameState = event.frameState;
@@ -309,16 +316,25 @@ Kanimarker = (function() {
       context.stroke();
       context.restore();
     }
-    return $('#debug').text(JSON.stringify({
-      '現在地': kanimarker.position,
-      '方向': kanimarker.direction,
-      '計測精度': kanimarker.accuracy,
-      'モード': kanimarker.headingUp ? '追従モード' : 'ビューモード',
-      '移動': (kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
-      '回転': (kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
-      '計測精度': (kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
-      'フェードイン・アウト': (kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'
-    }, null, 2));
+    if (this._debug) {
+      debugText = JSON.stringify({
+        '現在地': kanimarker.position,
+        '方向': kanimarker.direction,
+        '計測精度': kanimarker.accuracy,
+        'モード': kanimarker.headingUp ? '追従モード' : 'ビューモード',
+        '移動': (kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
+        '回転': (kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
+        '計測精度': (kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
+        'フェードイン・アウト': (kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'
+      }, null, 2);
+      context.save();
+      context.fillStyle = "rgba(255, 255, 255, 0.6)";
+      context.fillRect(0, context.canvas.height - 20, context.canvas.width, 20);
+      context.font = "10px";
+      context.fillStyle = "black";
+      context.fillText(debugText, 10, context.canvas.height - 7);
+      return context.restore();
+    }
   };
 
   Kanimarker.prototype.precompose_ = function(event) {

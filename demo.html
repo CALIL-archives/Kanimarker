@@ -5,25 +5,12 @@
     <title>Kanimarker Demonstration</title>
     <link rel="stylesheet" href="http://openlayers.org/en/v3.8.2/css/ol.css" type="text/css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.8.2/ol.min.js" type="text/javascript"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
     <style>
         html, body, #map {
             height: 100%;
             width: 100%;
             margin: 0;
             padding: 0;
-        }
-
-        #debug {
-            white-space: pre-wrap;
-            height: 200px;
-            width: 250px;
-            background-color: rgba(255, 255, 255, 0.6);
-            top: 150px;
-            left: 60px;
-            position: absolute;
-            font-size: 10px;
-            z-index: 100;
         }
 
         #control {
@@ -39,9 +26,9 @@
     </style>
 </head>
 <body>
-<div id="debug"></div>
 <div id="control">
-    現在地 <button onclick="kanimarker.setPosition(null);">
+    現在地
+    <button onclick="kanimarker.setPosition(null);">
         なし
     </button>
     <button onclick="kanimarker.setPosition(ol.proj.transform([137.528032,35.573162], 'EPSG:4326', 'EPSG:3857'));">
@@ -58,7 +45,9 @@
     <button onclick="kanimarker.setAccuracy(5);">5m</button>
     <button onclick="kanimarker.setAccuracy(10);">10m</button>
     <button onclick="kanimarker.setAccuracy(50);">50m</button>
-    <button onclick="kanimarker.setPosition(ol.proj.transform([137.528032,35.573162], 'EPSG:4326', 'EPSG:3857'),50);">カーリルオフィス/50m</button>
+    <button onclick="kanimarker.setPosition(ol.proj.transform([137.528032,35.573162], 'EPSG:4326', 'EPSG:3857'),50);">
+        カーリルオフィス/50m
+    </button>
     <br/>
     方角(0-359)
     <button onclick="kanimarker.setDirection(null);">なし</button>
@@ -72,6 +61,8 @@
     <button onclick="kanimarker.setHeadingUp(false);map.getView().setRotation(0);if(kanimarker.position!=null){map.getView().setCenter(kanimarker.position)}">
         現在地に移動する
     </button>
+    <button onclick="kanimarker.showDebugInfomation(true);">デバッグ表示オン</button>
+    <button onclick="kanimarker.showDebugInfomation(false);">デバッグ表示オフ</button>
 </div>
 
 <div id="map" class="map"></div>

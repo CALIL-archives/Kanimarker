@@ -34,6 +34,9 @@ class Kanimarker
   # @nodoc アニメーション用の内部ステート
   fadeInOutAnimationState_: null
 
+  # @nodoc デバッグ表示の有無(内部ステート)
+  _debug : false
+
   # マップに現在地マーカーをインストールする
   #
   # @param map {ol.Map} マップオブジェクト
@@ -51,6 +54,14 @@ class Kanimarker
     @directionAnimationState_ = null
     @accuracyAnimationState_ = null
     @fadeInOutAnimationState_ = null
+
+  # デバッグ表示の有無を設定する
+  #
+  # @param newValue {Boolean} する:true, しない: false
+  #
+  showDebugInfomation: (newValue)->
+    @_debug=newValue
+    @map.render()
 
   # 追従モードの設定をする
   #
@@ -89,7 +100,7 @@ class Kanimarker
     @position = toPosition
 
     # 追従モードの場合はマップに場所をセットする
-    if @headingUp
+    if @headingUp and toPosition?
       @map.getView().setCenter(toPosition.slice())
 
     # スタート地点から目的地に移動する
@@ -219,7 +230,7 @@ class Kanimarker
     if not silent
       @map.render()
 
-  # @nodoc マップ描画後の処理
+  # @nodoc マップ描画処理
   postcompose_: (event)->
     context = event.context
     vectorContext = event.vectorContext
@@ -236,7 +247,7 @@ class Kanimarker
     if @moveAnimationState_?
       if @moveAnimationState_.animate(frameState.time)
         position = @moveAnimationState_.current
-        frameState.animate = true # アニメーションを続ける
+        frameState.animate = true
       else
         @moveAnimationState_=null
 
@@ -245,7 +256,7 @@ class Kanimarker
       if @fadeInOutAnimationState_.animate(frameState.time)
         opacity = @fadeInOutAnimationState_.current
         position = @fadeInOutAnimationState_.animationPosition
-        frameState.animate = true # アニメーションを続ける
+        frameState.animate = true
       else
         @fadeInOutAnimationState_=null
 
@@ -253,7 +264,7 @@ class Kanimarker
     if @directionAnimationState_?
       if @directionAnimationState_.animate(frameState.time)
         direction = @directionAnimationState_.current
-        frameState.animate = true # アニメーションを続ける
+        frameState.animate = true
       else
         @directionAnimationState_=null
 
@@ -261,7 +272,7 @@ class Kanimarker
     if @accuracyAnimationState_?
       if @accuracyAnimationState_.animate(frameState.time)
         accuracy = @accuracyAnimationState_.current
-        frameState.animate = true # アニメーションを続ける
+        frameState.animate = true
       else
         @accuracyAnimationState_=null
 
@@ -325,16 +336,24 @@ class Kanimarker
 
       context.restore() #キャンバスのステートを復帰(必ず実行すること)
 
-    $('#debug').text(JSON.stringify(
-      '現在地': kanimarker.position
-      '方向': kanimarker.direction
-      '計測精度': kanimarker.accuracy
-      'モード': `kanimarker.headingUp ? '追従モード' : 'ビューモード'`
-      '移動': `(kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-      '回転': `(kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-      '計測精度': `(kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-      'フェードイン・アウト': `(kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-    , null, 2))
+    if @_debug
+      debugText = JSON.stringify(
+        '現在地': kanimarker.position
+        '方向': kanimarker.direction
+        '計測精度': kanimarker.accuracy
+        'モード': `kanimarker.headingUp ? '追従モード' : 'ビューモード'`
+        '移動': `(kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+        '回転': `(kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+        '計測精度': `(kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+        'フェードイン・アウト': `(kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
+      , null, 2)
+      context.save()
+      context.fillStyle = "rgba(255, 255, 255, 0.6)"
+      context.fillRect(0,context.canvas.height-20 , context.canvas.width, 20)
+      context.font = "10px"
+      context.fillStyle = "black"
+      context.fillText(debugText, 10,  context.canvas.height-7)
+      context.restore()
 
   # @nodoc マップ描画前の処理
   precompose_: (event)->
