@@ -58,7 +58,7 @@ class Kanimarker
   ###
     現在地を常に中心, マーカーの向きを画面上向きにするかどうかを設定する.
     @param headingUp {Boolean} する:true, しない: false
-    @return 成功: true 現在地、または角度がセットされていない: false
+    @return 成功: true
   ###
   setHeadingUp: (newHeadingUp = false)->
     @headingUp = newHeadingUp
@@ -69,11 +69,8 @@ class Kanimarker
       @directionAnimation = null
       if @position?
         @map.getView().setCenter(deepCopy(@position))
-        return false
-
       if @direction?
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
-        return false
     return true
 
   # 現在のマーカーのいちへ移動
@@ -354,7 +351,7 @@ class Kanimarker
 
       context.restore() #キャンバスのステートを復帰(必ず実行すること)
 
-    $('#marker_info').text(JSON.stringify(
+    $('#debug').text(JSON.stringify(
       '現在地ステータス': kanimarker.position
       '回転': kanimarker.direction
       '円のサイズ': kanimarker.accuracy

@@ -59,7 +59,7 @@ Kanimarker = (function() {
   /*
     現在地を常に中心, マーカーの向きを画面上向きにするかどうかを設定する.
     @param headingUp {Boolean} する:true, しない: false
-    @return 成功: true 現在地、または角度がセットされていない: false
+    @return 成功: true
    */
 
   Kanimarker.prototype.setHeadingUp = function(newHeadingUp) {
@@ -72,11 +72,9 @@ Kanimarker = (function() {
       this.directionAnimation = null;
       if (this.position != null) {
         this.map.getView().setCenter(deepCopy(this.position));
-        return false;
       }
       if (this.direction != null) {
         this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
-        return false;
       }
     }
     return true;
@@ -369,7 +367,7 @@ Kanimarker = (function() {
       context.stroke();
       context.restore();
     }
-    $('#marker_info').text(JSON.stringify({
+    $('#debug').text(JSON.stringify({
       '現在地ステータス': kanimarker.position,
       '回転': kanimarker.direction,
       '円のサイズ': kanimarker.accuracy,
