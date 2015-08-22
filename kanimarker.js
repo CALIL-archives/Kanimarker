@@ -68,6 +68,9 @@ Kanimarker = (function() {
       fromPosition = this.position;
     }
     this.position = toPosition;
+    if (this.headingUp) {
+      this.map.getView().setCenter(toPosition.slice());
+    }
     if ((fromPosition != null) && (toPosition != null)) {
       this.moveAnimationState_ = {
         start: new Date(),
@@ -109,6 +112,9 @@ Kanimarker = (function() {
       };
     }
     if ((fromPosition != null) && (toPosition == null)) {
+      if (this.headingUp) {
+        this.setHeadingUp(false);
+      }
       this.moveAnimationState_ = null;
       this.fadeInOutAnimationState_ = {
         start: new Date(),
@@ -204,6 +210,9 @@ Kanimarker = (function() {
       }
     };
     this.direction = newDirection;
+    if (this.headingUp) {
+      this.map.getView().setRotation(-(newDirection / 180 * Math.PI));
+    }
     if (!silent) {
       return this.map.render();
     }
@@ -314,24 +323,18 @@ Kanimarker = (function() {
 
   Kanimarker.prototype.precompose_ = function(event) {
     var direction, frameState, position;
-    frameState = event.frameState;
     if ((this.position != null) && this.headingUp) {
+      frameState = event.frameState;
       position = this.position;
       direction = this.direction;
       if (this.moveAnimationState_ != null) {
         if (this.moveAnimationState_.animate(frameState.time)) {
           position = this.moveAnimationState_.current;
-        } else {
-          this.map.getView().setCenter(this.position.slice());
-          this.moveAnimationState_ = null;
         }
       }
       if (this.directionAnimationState_ != null) {
         if (this.directionAnimationState_.animate(frameState.time)) {
           direction = this.directionAnimationState_.current;
-        } else {
-          this.map.getView().setRotation(-(direction / 180 * Math.PI));
-          this.directionAnimationState_ = null;
         }
       }
       frameState.viewState.center[0] = position[0];

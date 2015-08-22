@@ -88,6 +88,10 @@ class Kanimarker
       fromPosition = @position
     @position = toPosition
 
+    # 追従モードの場合はマップに場所をセットする
+    if @headingUp
+      @map.getView().setCenter(toPosition.slice())
+
     # スタート地点から目的地に移動する
     if fromPosition? and toPosition?
       @moveAnimationState_ =
@@ -122,6 +126,8 @@ class Kanimarker
 
     # フェードアウト
     if fromPosition? and not toPosition?
+      if @headingUp
+        @setHeadingUp(false)
       @moveAnimationState_ = null
       @fadeInOutAnimationState_ =
         start: new Date()
@@ -205,6 +211,10 @@ class Kanimarker
           return false
 
     @direction = newDirection
+
+    # 追従モードの場合は先にセットする
+    if @headingUp
+      @map.getView().setRotation(-(newDirection / 180 * Math.PI))
 
     if not silent
       @map.render()
@@ -328,32 +338,19 @@ class Kanimarker
 
   # @nodoc マップ描画前の処理
   precompose_: (event)->
-    frameState = event.frameState
     if @position? and @headingUp
-        position = @position
-        direction = @direction
-
-        # 位置アニメーション
-        if @moveAnimationState_?
-          if @moveAnimationState_.animate(frameState.time)
-            position = @moveAnimationState_.current
-          else
-            # ラスト1回はView本体の中心を上書き(renderを呼び続けないための対策)
-            @map.getView().setCenter(@position.slice())
-            @moveAnimationState_=null
-
-        # 回転アニメーション
-        if @directionAnimationState_?
-          if @directionAnimationState_.animate(frameState.time)
-            direction = @directionAnimationState_.current
-          else
-            # ラスト1回はView本体の回転方向を上書き(renderを呼び続けないための対策)
-            @map.getView().setRotation(-(direction / 180 * Math.PI))
-            @directionAnimationState_=null
-
-        frameState.viewState.center[0] = position[0]
-        frameState.viewState.center[1] = position[1]
-        frameState.viewState.rotation = -(direction / 180 * Math.PI)
+      frameState = event.frameState
+      position = @position
+      direction = @direction
+      if @moveAnimationState_?
+        if @moveAnimationState_.animate(frameState.time)
+          position = @moveAnimationState_.current
+      if @directionAnimationState_?
+        if @directionAnimationState_.animate(frameState.time)
+          direction = @directionAnimationState_.current
+      frameState.viewState.center[0] = position[0]
+      frameState.viewState.center[1] = position[1]
+      frameState.viewState.rotation = -(direction / 180 * Math.PI)
 
   # @nodoc ドラッグイベントの処理
   pointerdrag_: ->
