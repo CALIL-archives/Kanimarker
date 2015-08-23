@@ -1,10 +1,8 @@
-#
 #  現在地マーカーを表示するOpenLayers3プラグイン
 #
 #  @author sakai@calil.jp
 #  @author ryuuji@calil.jp
 #
-
 class Kanimarker
 
   # @property [ol.Map] マップオブジェクト（読み込み専用）
@@ -35,7 +33,10 @@ class Kanimarker
   fadeInOutAnimationState_: null
 
   # @nodoc デバッグ表示の有無(内部ステート)
-  _debug : false
+  debug_: false
+
+  # @nodoc コールバック用変数
+  callbacks: {}
 
   # マップに現在地マーカーをインストールする
   #
@@ -60,7 +61,7 @@ class Kanimarker
   # @param newValue {Boolean} する:true, しない: false
   #
   showDebugInfomation: (newValue)->
-    @_debug=newValue
+    @debug_=newValue
     @map.render()
 
   # 追従モードの設定をする
@@ -69,6 +70,8 @@ class Kanimarker
   #
   setHeadingUp: (newValue)->
     if @headingUp != newValue
+      if newValue==true and not @position?
+        return
       @headingUp = newValue
       @cancelAnimation()
       if @position?
@@ -76,6 +79,7 @@ class Kanimarker
       if @direction?
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
       @map.render()
+      @dispatch('change:headingup',newValue)
 
   # 現在地を設定する
   #
@@ -322,9 +326,9 @@ class Kanimarker
 
       # 矢印のパスを定義(このパスはSVGからでも移植できるけど、原点に注意)
       context.beginPath()
-      context.moveTo(0, -25)
-      context.lineTo(-10, -12)
-      context.lineTo(10, -12)
+      context.moveTo(0, -20)
+      context.lineTo(-7, -12)
+      context.lineTo(7, -12)
       context.closePath()
 
       # 塗りつぶす。ここでstrokeやfill、スタイルをセット
@@ -332,11 +336,11 @@ class Kanimarker
       context.strokeStyle = "rgba(255, 255, 255, #{1.0 * opacity})"
       context.lineWidth = 3
       context.fill()
-      context.stroke()
+      #context.stroke()
 
       context.restore() #キャンバスのステートを復帰(必ず実行すること)
 
-    if @_debug
+    if @debug_
       debugText = JSON.stringify(
         '現在地': kanimarker.position
         '方向': kanimarker.direction
@@ -375,3 +379,18 @@ class Kanimarker
   pointerdrag_: ->
     if @headingUp
       @setHeadingUp(false)
+
+  # イベントハンドラーを設定する
+  #
+  # @param event_name {String} イベント名
+  # @param callback {function} コールバック関数
+  # change:headingup (newvalue) - 追従モードの変更を通知する
+  on: (type, listener) ->
+    @callbacks[type] ||= []
+    @callbacks[type].push listener
+    @
+
+  # @nodoc イベントを通知する
+  dispatch: (type, data) ->
+    chain = @callbacks[type]
+    callback data for callback in chain if chain?

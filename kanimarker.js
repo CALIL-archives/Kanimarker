@@ -20,7 +20,9 @@ Kanimarker = (function() {
 
   Kanimarker.prototype.fadeInOutAnimationState_ = null;
 
-  Kanimarker.prototype._debug = false;
+  Kanimarker.prototype.debug_ = false;
+
+  Kanimarker.prototype.callbacks = {};
 
   function Kanimarker(map) {
     this.map = map;
@@ -37,12 +39,15 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.showDebugInfomation = function(newValue) {
-    this._debug = newValue;
+    this.debug_ = newValue;
     return this.map.render();
   };
 
   Kanimarker.prototype.setHeadingUp = function(newValue) {
     if (this.headingUp !== newValue) {
+      if (newValue === true && (this.position == null)) {
+        return;
+      }
       this.headingUp = newValue;
       this.cancelAnimation();
       if (this.position != null) {
@@ -51,7 +56,8 @@ Kanimarker = (function() {
       if (this.direction != null) {
         this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
       }
-      return this.map.render();
+      this.map.render();
+      return this.dispatch('change:headingup', newValue);
     }
   };
 
@@ -305,18 +311,17 @@ Kanimarker = (function() {
       context.rotate((direction / 180 * Math.PI) + frameState.viewState.rotation);
       context.scale(pixelRatio, pixelRatio);
       context.beginPath();
-      context.moveTo(0, -25);
-      context.lineTo(-10, -12);
-      context.lineTo(10, -12);
+      context.moveTo(0, -20);
+      context.lineTo(-7, -12);
+      context.lineTo(7, -12);
       context.closePath();
       context.fillStyle = "rgba(0, 160, 233, " + (1.0 * opacity) + ")";
       context.strokeStyle = "rgba(255, 255, 255, " + (1.0 * opacity) + ")";
       context.lineWidth = 3;
       context.fill();
-      context.stroke();
       context.restore();
     }
-    if (this._debug) {
+    if (this.debug_) {
       debugText = JSON.stringify({
         '現在地': kanimarker.position,
         '方向': kanimarker.direction,
@@ -362,6 +367,26 @@ Kanimarker = (function() {
   Kanimarker.prototype.pointerdrag_ = function() {
     if (this.headingUp) {
       return this.setHeadingUp(false);
+    }
+  };
+
+  Kanimarker.prototype.on = function(type, listener) {
+    var base;
+    (base = this.callbacks)[type] || (base[type] = []);
+    this.callbacks[type].push(listener);
+    return this;
+  };
+
+  Kanimarker.prototype.dispatch = function(type, data) {
+    var callback, chain, i, len, results;
+    chain = this.callbacks[type];
+    if (chain != null) {
+      results = [];
+      for (i = 0, len = chain.length; i < len; i++) {
+        callback = chain[i];
+        results.push(callback(data));
+      }
+      return results;
     }
   };
 

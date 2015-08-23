@@ -57,7 +57,7 @@
     <input autofocus type="number" value="0" min="0" max="359"
            onchange="kanimarker.setDirection(Number(this.value));">　
     <br/>
-    <button onclick="kanimarker.setHeadingUp(true);">追従モードに切り替える</button>
+    <button onclick="kanimarker.setHeadingUp(true);" id="mhead">追従モードに切り替える</button>
     <button onclick="kanimarker.setHeadingUp(false);map.getView().setRotation(0);if(kanimarker.position!=null){map.getView().setCenter(kanimarker.position)}">
         現在地に移動する
     </button>
@@ -86,6 +86,16 @@
         })
     });
     kanimarker = new Kanimarker(map); // マーカーをインストール
+
+    function headingup_callback(isHeading){
+        console.log('headingup_callback:'+isHeading)
+        if(isHeading==true){
+            document.getElementById("mhead").style.backgroundColor = "#ff5555";
+        }else{
+            document.getElementById("mhead").style.backgroundColor = "";
+        }
+    }
+    kanimarker.on('change:headingup',headingup_callback)
 </script>
 </body>
 </html>

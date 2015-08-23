@@ -180,6 +180,18 @@
       マーカーの向きを設定する 
     </span>
   </li>
+  <li>
+    <span class='signature'>
+      <a href='#on-dynamic'>
+        #
+(void)
+<b>on</b><span>(type, listener)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      イベントハンドラーを設定する <p>change:headingup (newvalue) - 追従モードの変更を通知する</p>
+    </span>
+  </li>
 </ul>
       <h2>Constructor Details</h2>
       <div class='methods'>
@@ -395,10 +407,46 @@
   </ul>
 </div>
   </div>
+  <div class='method_details'>
+    <p class='signature' id='on-dynamic'>
+      #
+(void)
+<b>on</b><span>(type, listener)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>イベントハンドラーを設定する</p><p>change:headingup (newvalue) - 追従モードの変更を通知する</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>event_name</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>イベント名 </span>
+    </li>
+    <li>
+      <span class='name'>callback</span>
+      <span class='type'>
+        (
+          <tt>function</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>コールバック関数 </span>
+    </li>
+  </ul>
+</div>
+  </div>
 </div>
     </div>
     <div id='footer'>
-  August 23, 15 01:27:05 by
+  August 23, 15 10:49:05 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
