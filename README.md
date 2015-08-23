@@ -7,3 +7,7 @@ Position Marker for OpenLayers3
 npm update
 gulp
 ```
+
+## Deploy Endpoint
+
+https://s3-ap-northeast-1.amazonaws.com/kanimarker/kanimarker.js
