@@ -1,2 +1,9 @@
 # Kanimarker
-"self position" marker for OpenLayers3
+Position Marker for OpenLayers3
+
+## Compile
+
+```bash
+npm update
+gulp
+```
