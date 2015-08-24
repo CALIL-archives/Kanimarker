@@ -43,7 +43,7 @@ class Kanimarker
   # @param map {ol.Map} マップオブジェクト
   #
   constructor: (map)->
-    @map=map
+    @map = map
     @map.on('postcompose', @postcompose_, this)
     @map.on('precompose', @precompose_, this)
     @map.on('pointerdrag', @pointerdrag_, this)
@@ -61,7 +61,7 @@ class Kanimarker
   # @param newValue {Boolean} する:true, しない: false
   #
   showDebugInfomation: (newValue)->
-    @debug_=newValue
+    @debug_ = newValue
     @map.render()
 
   # 追従モードの設定をする
@@ -70,7 +70,7 @@ class Kanimarker
   #
   setHeadingUp: (newValue)->
     if @headingUp != newValue
-      if newValue==true and not @position?
+      if newValue == true and not @position?
         return
       @headingUp = newValue
       @cancelAnimation()
@@ -79,7 +79,7 @@ class Kanimarker
       if @direction?
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
       @map.render()
-      @dispatch('change:headingup',newValue)
+      @dispatch('change:headingup', newValue)
 
   # 現在地を設定する
   #
@@ -89,12 +89,12 @@ class Kanimarker
   #
   setPosition: (toPosition, accuracy, silent = false)->
     # 変化がない場合は何もしない
-    if (toPosition? and @position? and toPosition[0]==@position[0] and toPosition[1]==@position[1]) or (not toPosition? and not @position?)
+    if (toPosition? and @position? and toPosition[0] == @position[0] and toPosition[1] == @position[1]) or (not toPosition? and not @position?)
       if accuracy?
-         @setAccuracy(accuracy,silent)
+        @setAccuracy(accuracy, silent)
       return
     if accuracy?
-      @setAccuracy(accuracy,true)
+      @setAccuracy(accuracy, true)
 
     # 移動中の場合は中間地点からスタートする
     if @moveAnimationState_?
@@ -253,7 +253,7 @@ class Kanimarker
         position = @moveAnimationState_.current
         frameState.animate = true
       else
-        @moveAnimationState_=null
+        @moveAnimationState_ = null
 
     # フェードインアウトアニメーション
     if @fadeInOutAnimationState_?
@@ -262,7 +262,7 @@ class Kanimarker
         position = @fadeInOutAnimationState_.animationPosition
         frameState.animate = true
       else
-        @fadeInOutAnimationState_=null
+        @fadeInOutAnimationState_ = null
 
     # 回転アニメーション
     if @directionAnimationState_?
@@ -270,7 +270,7 @@ class Kanimarker
         direction = @directionAnimationState_.current
         frameState.animate = true
       else
-        @directionAnimationState_=null
+        @directionAnimationState_ = null
 
     # 円アニメーション
     if @accuracyAnimationState_?
@@ -278,7 +278,7 @@ class Kanimarker
         accuracy = @accuracyAnimationState_.current
         frameState.animate = true
       else
-        @accuracyAnimationState_=null
+        @accuracyAnimationState_ = null
 
     # 非表示以外なら描画
     if position?
@@ -353,10 +353,10 @@ class Kanimarker
       , null, 2)
       context.save()
       context.fillStyle = "rgba(255, 255, 255, 0.6)"
-      context.fillRect(0,context.canvas.height-20 , context.canvas.width, 20)
+      context.fillRect(0, context.canvas.height - 20, context.canvas.width, 20)
       context.font = "10px"
       context.fillStyle = "black"
-      context.fillText(debugText, 10,  context.canvas.height-7)
+      context.fillText(debugText, 10, context.canvas.height - 7)
       context.restore()
 
   # @nodoc マップ描画前の処理
