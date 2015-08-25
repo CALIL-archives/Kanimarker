@@ -12,7 +12,11 @@ gulp
 
 https://s3-ap-northeast-1.amazonaws.com/kanimarker/demo.html
 
-## Deploy Endpoint
+## Document
+
+https://s3-ap-northeast-1.amazonaws.com/kanimarker/doc/class/Kanimarker.html
+
+## Endpoint
 
 https://s3-ap-northeast-1.amazonaws.com/kanimarker/kanimarker.js
 
