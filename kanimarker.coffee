@@ -124,8 +124,15 @@ class Kanimarker
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / @duration
           if time <= 1
-            @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time))
-            @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))
+            if @duration>8000
+              @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.linear(time))
+              @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.linear(time))
+            else if @duration>2000
+              @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.inAndOut(time))
+              @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.inAndOut(time))
+            else
+              @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time))
+              @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))
             return true
           else
             return false
