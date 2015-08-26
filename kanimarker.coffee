@@ -38,10 +38,10 @@ class Kanimarker
   # @nodoc コールバック用変数
   callbacks: {}
 
-  # マーカー移動時のアニメーション時間(ms)
+  # @property [Number] マーカー移動時のアニメーション時間(ms)
   moveDuration: 2000
 
-  # 計測精度のアニメーション時間(ms)
+  # @property [Number] 計測精度のアニメーション時間(ms)
   accuracyDuration: 2000
 
   # マップに現在地マーカーをインストールする
