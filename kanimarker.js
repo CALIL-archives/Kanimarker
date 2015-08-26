@@ -172,6 +172,9 @@ Kanimarker = (function() {
     if (silent == null) {
       silent = false;
     }
+    if (this.accuracy === accuracy) {
+      return;
+    }
     if (this.accuracyAnimationState_ != null) {
       from = this.accuracyAnimationState_.current;
     } else {

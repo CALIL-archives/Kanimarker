@@ -181,6 +181,9 @@ class Kanimarker
   # @param silent {Boolean} 再描画抑制フラグ
   #
   setAccuracy: (accuracy, silent = false)->
+    if @accuracy == accuracy
+      return
+
     # アニメーション中の場合は中間値からスタート
     if @accuracyAnimationState_?
       from = @accuracyAnimationState_.current
