@@ -214,6 +214,8 @@ class Kanimarker
   # @param silent {Boolean} 再描画抑制フラグ
   #
   setDirection: (newDirection, silent = false)->
+    if newDirection is undefined or @direction==newDirection
+      return
     # アニメーションのための仮想的な角度を計算
     # 左回りの場合はマイナスの値をとる場合がある
     if newDirection > @direction

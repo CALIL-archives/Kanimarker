@@ -208,6 +208,9 @@ Kanimarker = (function() {
     if (silent == null) {
       silent = false;
     }
+    if (newDirection === void 0 || this.direction === newDirection) {
+      return;
+    }
     if (newDirection > this.direction) {
       n = newDirection - this.direction;
       if (n <= 180) {
