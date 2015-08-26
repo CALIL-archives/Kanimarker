@@ -38,6 +38,9 @@ class Kanimarker
   # @nodoc コールバック用変数
   callbacks: {}
 
+  # マーカー移動時のアニメーション時間(ms)
+  moveDuration: 2000
+
   # マップに現在地マーカーをインストールする
   #
   # @param map {ol.Map} マップオブジェクト
@@ -114,8 +117,9 @@ class Kanimarker
         from: fromPosition.slice()
         current: fromPosition.slice()
         to: toPosition.slice()
+        duration : @moveDuration
         animate: (frameStateTime)->
-          time = (frameStateTime - @start) / 2000
+          time = (frameStateTime - @start) / @duration
           if time <= 1
             @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time))
             @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))
