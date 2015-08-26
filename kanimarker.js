@@ -26,6 +26,8 @@ Kanimarker = (function() {
 
   Kanimarker.prototype.moveDuration = 2000;
 
+  Kanimarker.prototype.accuracyDuration = 2000;
+
   function Kanimarker(map) {
     this.map = map;
     this.map.on('postcompose', this.postcompose_, this);
@@ -173,9 +175,10 @@ Kanimarker = (function() {
       from: from,
       to: accuracy,
       current: from,
+      duration: this.accuracyDuration,
       animate: function(frameStateTime) {
         var time;
-        time = (frameStateTime - this.start) / 2000;
+        time = (frameStateTime - this.start) / this.duration;
         if (time <= 1) {
           this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
           return true;

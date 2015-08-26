@@ -41,6 +41,9 @@ class Kanimarker
   # マーカー移動時のアニメーション時間(ms)
   moveDuration: 2000
 
+  # 計測精度のアニメーション時間(ms)
+  accuracyDuration: 2000
+
   # マップに現在地マーカーをインストールする
   #
   # @param map {ol.Map} マップオブジェクト
@@ -183,8 +186,9 @@ class Kanimarker
       from: from
       to: accuracy
       current: from
+      duration: @accuracyDuration
       animate: (frameStateTime)->
-        time = (frameStateTime - @start) / 2000
+        time = (frameStateTime - @start) / @duration
         if time <= 1
           @current = @from + ((@to - @from) * ol.easing.easeOut(time))
           return true
