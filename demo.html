@@ -46,18 +46,16 @@
     <button onclick="kanimarker.setAccuracy(10);">10m</button>
     <button onclick="kanimarker.setAccuracy(50);">50m</button>
     <br/>
-    移動アニメーション時間(ms)
-    <button onclick="kanimarker.moveDuration=500;">500</button>
-    <button onclick="kanimarker.moveDuration=1000;">1000</button>
-    <button onclick="kanimarker.moveDuration=5000;">5000</button>
+    移動アニメーション時間
+    <button onclick="kanimarker.moveDuration=500;">500ms</button>
+    <button onclick="kanimarker.moveDuration=2000;">2000ms[初期値]</button>
+    <button onclick="kanimarker.moveDuration=5000;">5000ms</button>
     <br/>
-    方角(0-359)
+    方角
     <button onclick="kanimarker.setDirection(null);">なし</button>
     <button onclick="kanimarker.setDirection(30);">30°</button>
     <button onclick="kanimarker.setDirection(90);">90°</button>
     <button onclick="kanimarker.setDirection(180);">180°</button>
-    <input autofocus type="number" value="0" min="0" max="359"
-           onchange="kanimarker.setDirection(Number(this.value));">　
     <br/>
     <button onclick="kanimarker.setHeadingUp(true);" id="mhead">追従モードに切り替える</button>
     <button onclick="kanimarker.setHeadingUp(false);map.getView().setRotation(0);if(kanimarker.position!=null){map.getView().setCenter(kanimarker.position)}">
