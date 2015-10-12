@@ -303,17 +303,15 @@ class Kanimarker
     # 非表示以外なら描画
     if position?
       # 円
-      circleStyle = new ol.style.Circle(
-        snapToPixel: false
-        radius: (accuracy / frameState.viewState.resolution) * pixelRatio
-        fill: new ol.style.Fill(
-          color: "rgba(56, 149, 255, #{0.2 * opacity})")
-        stroke: new ol.style.Stroke(
-          color: "rgba(56, 149, 255, #{0.8 * opacity})"
-          width: 1 * pixelRatio)
-      )
-      vectorContext.setImageStyle(circleStyle)
-      vectorContext.drawPointGeometry(new ol.geom.Point(position), null)
+      if (accuracy / frameState.viewState.resolution) * pixelRatio > 15
+        circleStyle = new ol.style.Circle(
+          snapToPixel: false
+          radius: (accuracy / frameState.viewState.resolution) * pixelRatio
+          fill: new ol.style.Fill(
+            color: "rgba(56, 149, 255, #{0.2 * opacity})")
+        )
+        vectorContext.setImageStyle(circleStyle)
+        vectorContext.drawPointGeometry(new ol.geom.Point(position), null)
 
       # マーカーアイコン
       iconStyle = new ol.style.Circle(
