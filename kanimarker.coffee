@@ -120,14 +120,14 @@ class Kanimarker
         from: fromPosition.slice()
         current: fromPosition.slice()
         to: toPosition.slice()
-        duration : @moveDuration
+        duration: @moveDuration
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / @duration
           if time <= 1
-            if @duration>8000
+            if @duration > 8000
               @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.linear(time))
               @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.linear(time))
-            else if @duration>2000
+            else if @duration > 2000
               @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.inAndOut(time))
               @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.inAndOut(time))
             else
@@ -214,7 +214,7 @@ class Kanimarker
   # @param silent {Boolean} 再描画抑制フラグ
   #
   setDirection: (newDirection, silent = false)->
-    if newDirection is undefined or @direction==newDirection
+    if newDirection is undefined or @direction == newDirection
       return
     # アニメーションのための仮想的な角度を計算
     # 左回りの場合はマイナスの値をとる場合がある
