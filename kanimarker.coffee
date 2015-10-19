@@ -1,8 +1,13 @@
-#  現在地マーカーを表示するOpenLayers3プラグイン
-#
-#  @author sakai@calil.jp
-#  @author ryuuji@calil.jp
-#
+###
+
+Kanimarker
+
+Copyright (c) 2015 CALIL Inc.
+This software is released under the MIT License.
+http://opensource.org/licenses/mit-license.php
+
+###
+
 class Kanimarker
 
   # @property [ol.Map] マップオブジェクト（読み込み専用）
