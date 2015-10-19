@@ -1,0 +1,21 @@
+engines:
+  coffeelint:
+    enabled: true
+  eslint:
+    enabled: true
+  fixme:
+    enabled: true
+
+ratings:
+  paths:
+  - "**.coffee"
+  - "**.js"
+exclude_paths:
+- test/test.coffee
+- gulpfile.js
+- README.md
+- circle.yml
+- package.json
+- test/mocha.opts
+- test/sabae.json
+- doc/
