@@ -1,5 +1,7 @@
 # Kanimarker
 
+[![Code Climate](https://codeclimate.com/github/CALIL/Kanimarker/badges/gpa.svg)](https://codeclimate.com/github/CALIL/Kanimarker)
+
 Position Marker for OpenLayers3
 
 ## Compile
