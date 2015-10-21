@@ -9,24 +9,9 @@ Position Marker for OpenLayers3
 
 ```javascript
 var map;
-map = new ol.Map({
-    layers: [new ol.layer.Tile({
-        source: new ol.source.XYZ({
-            url: 'http://api.tiles.mapbox.com/v4/caliljp.ihofg5ie/{z}/{x}/{y}.png',
-            maxZoom: 20
-        })
-    })],
-    target: 'map',
-    maxZoom: 26,
-    minZoom: 18,
-    logo: false,
-    view: new ol.View({
-        center: ol.proj.transform([137.528032, 35.573162], 'EPSG:4326', 'EPSG:3857'),
-        zoom: 18
-    })
-});
+map = new ol.Map({ ... });
 kanimarker = new Kanimarker(map);
-kanimarker.setPosition(ol.proj.transform([137.528032,35.573162], 'EPSG:4326', 'EPSG:3857'),50);
+kanimarker.setPosition([137.528032,35.573162],50);
 ```
 
 ## Demo
