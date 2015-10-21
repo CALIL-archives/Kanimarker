@@ -91,7 +91,8 @@ class Kanimarker
         return false
       @mode = newMode
       @cancelAnimation()
-      @map.getView().setCenter(@position.slice())
+      if @position isnt null
+        @map.getView().setCenter(@position.slice())
       if newMode == 'headingup'
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
       @map.render()
@@ -158,11 +159,8 @@ class Kanimarker
         animationPosition: toPosition
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / 500
-          if time <= 1
-            @current = @from + ((@to - @from) * ((x)-> x)(time))
-            return true
-          else
-            return false
+          @current = @from + ((@to - @from) * ((x)-> x)(time))
+          return time <= 1
 
     # フェードアウト
     if fromPosition? and not toPosition?
@@ -177,11 +175,8 @@ class Kanimarker
         animationPosition: fromPosition
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / 500
-          if time <= 1
-            @current = @from + ((@to - @from) * ((x)-> x)(time))
-            return true
-          else
-            return false
+          @current = @from + ((@to - @from) * ((x)-> x)(time))
+          return time <= 1
 
     if not silent
       @map.render()
@@ -192,16 +187,14 @@ class Kanimarker
   # @param silent {Boolean} 再描画抑制フラグ
   #
   setAccuracy: (accuracy, silent = false)->
-    if @accuracy == accuracy
+    if @accuracy is accuracy
       return
-
     # アニメーション中の場合は中間値からスタート
     if @accuracyAnimationState_?
       from = @accuracyAnimationState_.current
     else
       from = @accuracy
     @accuracy = accuracy
-
     @accuracyAnimationState_ =
       start: new Date()
       from: from
@@ -210,12 +203,8 @@ class Kanimarker
       duration: @accuracyDuration
       animate: (frameStateTime)->
         time = (frameStateTime - @start) / @duration
-        if time <= 1
-          @current = @from + ((@to - @from) * ol.easing.easeOut(time))
-          return true
-        else
-          return false
-
+        @current = @from + ((@to - @from) * ol.easing.easeOut(time))
+        return time <= 1
     if not silent
       @map.render()
 
@@ -250,11 +239,8 @@ class Kanimarker
 
       animate: (frameStateTime)->
         time = (frameStateTime - @start) / 500
-        if time <= 1
-          @current = @from + ((@to - @from) * ol.easing.easeOut(time))
-          return true
-        else
-          return false
+        @current = @from + ((@to - @from) * ol.easing.easeOut(time))
+        return time <= 1
 
     @direction = newDirection
 
@@ -393,18 +379,20 @@ class Kanimarker
     if @position isnt null and @mode != 'normal'
       frameState = event.frameState
       position = @position
-      if @mode == 'headingup'
-        direction = @direction
       if @moveAnimationState_?
         if @moveAnimationState_.animate(frameState.time)
           position = @moveAnimationState_.current
-      if @mode == 'headingup'
-        if @directionAnimationState_?
-          if @directionAnimationState_.animate(frameState.time)
-            direction = @directionAnimationState_.current
+        else
+          @moveAnimationState_ = null
       frameState.viewState.center[0] = position[0]
       frameState.viewState.center[1] = position[1]
       if @mode == 'headingup'
+        direction = @direction
+        if @directionAnimationState_?
+          if @directionAnimationState_.animate(frameState.time)
+            direction = @directionAnimationState_.current
+          else
+            @directionAnimationState_ = null
         frameState.viewState.rotation = -(direction / 180 * Math.PI)
 
   # @nodoc ドラッグイベントの処理

@@ -68,12 +68,15 @@ Kanimarker = (function() {
       }
       this.mode = newMode;
       this.cancelAnimation();
-      this.map.getView().setCenter(this.position.slice());
+      if (this.position !== null) {
+        this.map.getView().setCenter(this.position.slice());
+      }
       if (newMode === 'headingup') {
         this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
       }
       this.map.render();
-      return this.dispatch('change:mode', newMode);
+      this.dispatch('change:mode', newMode);
+      return true;
     }
   };
 
@@ -138,14 +141,10 @@ Kanimarker = (function() {
         animate: function(frameStateTime) {
           var time;
           time = (frameStateTime - this.start) / 500;
-          if (time <= 1) {
-            this.current = this.from + ((this.to - this.from) * (function(x) {
-              return x;
-            })(time));
-            return true;
-          } else {
-            return false;
-          }
+          this.current = this.from + ((this.to - this.from) * (function(x) {
+            return x;
+          })(time));
+          return time <= 1;
         }
       };
     }
@@ -163,14 +162,10 @@ Kanimarker = (function() {
         animate: function(frameStateTime) {
           var time;
           time = (frameStateTime - this.start) / 500;
-          if (time <= 1) {
-            this.current = this.from + ((this.to - this.from) * (function(x) {
-              return x;
-            })(time));
-            return true;
-          } else {
-            return false;
-          }
+          this.current = this.from + ((this.to - this.from) * (function(x) {
+            return x;
+          })(time));
+          return time <= 1;
         }
       };
     }
@@ -202,12 +197,8 @@ Kanimarker = (function() {
       animate: function(frameStateTime) {
         var time;
         time = (frameStateTime - this.start) / this.duration;
-        if (time <= 1) {
-          this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
-          return true;
-        } else {
-          return false;
-        }
+        this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
+        return time <= 1;
       }
     };
     if (!silent) {
@@ -246,12 +237,8 @@ Kanimarker = (function() {
       animate: function(frameStateTime) {
         var time;
         time = (frameStateTime - this.start) / 500;
-        if (time <= 1) {
-          this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
-          return true;
-        } else {
-          return false;
-        }
+        this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
+        return time <= 1;
       }
     };
     this.direction = newDirection;
@@ -377,24 +364,24 @@ Kanimarker = (function() {
     if (this.position !== null && this.mode !== 'normal') {
       frameState = event.frameState;
       position = this.position;
-      if (this.mode === 'headingup') {
-        direction = this.direction;
-      }
       if (this.moveAnimationState_ != null) {
         if (this.moveAnimationState_.animate(frameState.time)) {
           position = this.moveAnimationState_.current;
-        }
-      }
-      if (this.mode === 'headingup') {
-        if (this.directionAnimationState_ != null) {
-          if (this.directionAnimationState_.animate(frameState.time)) {
-            direction = this.directionAnimationState_.current;
-          }
+        } else {
+          this.moveAnimationState_ = null;
         }
       }
       frameState.viewState.center[0] = position[0];
       frameState.viewState.center[1] = position[1];
       if (this.mode === 'headingup') {
+        direction = this.direction;
+        if (this.directionAnimationState_ != null) {
+          if (this.directionAnimationState_.animate(frameState.time)) {
+            direction = this.directionAnimationState_.current;
+          } else {
+            this.directionAnimationState_ = null;
+          }
+        }
         return frameState.viewState.rotation = -(direction / 180 * Math.PI);
       }
     }
