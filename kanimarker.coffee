@@ -77,15 +77,14 @@ class Kanimarker
     @debug_ = newValue
     @map.render()
 
-  # 追従モードの設定をする
+  # 表示モードの設定をする
   #
-  # @param newMode {String} する:true, しない: false
-  #
+  # @param newMode {String} normal/centered/headingup
+  # @return {Boolean} 切り替えが成功したか
   setMode: (newMode)->
     if newMode isnt 'normal' and newMode isnt 'centered' and newMode isnt 'headingup'
       throw 'invalid mode'
     if @mode != newMode
-      # 現在地がない場合は、ヘディングアップモードに設定できない
       if @position is null and (newMode == 'centered' or newMode == 'headingup')
         return false
       if @direction is null and newMode == 'headingup'
@@ -97,6 +96,7 @@ class Kanimarker
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
       @map.render()
       @dispatch('change:mode', newMode)
+      return true
 
   # 現在地を設定する
   #
