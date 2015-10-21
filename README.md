@@ -7,7 +7,7 @@
 Draw marker(GPS or other any locations) and manage animations for heading-up mode.<br>
 Easy install and integration with OpenLayers 3.
 
-`Kanimarker`は[OpenLayers 3](http://openlayers.org/)で動作する現在地マーカーライブラリです。
+`Kanimarker` は [OpenLayers 3](http://openlayers.org/) で動作する現在地表示ライブラリです。
 GPSやその他の様々なロケーション（現在地）を表示するとともに、ヘディングアップモードや追従モードなどの
 ナビゲーションで標準的に必要とされるアニメーションを管理します。OpenLayers 3に簡単にインストールして連携できます。
 
