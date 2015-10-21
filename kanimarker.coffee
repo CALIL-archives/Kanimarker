@@ -79,8 +79,25 @@ class Kanimarker
       if @direction is null and mode == 'headingup'
         return false
       @mode = mode
-      if @position isnt null
-        @map.getView().setCenter(@position.slice())
+      if @position isnt null and mode isnt 'normal'
+        # 中心に向けてアニメーションを開始
+        from = @map.getView().getCenter()
+        to = @position
+        if from[0] - to[0] != 0 or from[1] - to[1] != 0
+          froms = [from[0] - to[0], from[1] - to[1]]
+          if @animations.moveMode? and @animations.animate()
+            froms = [animations.current[0],animations.current[1]]
+          @animations.moveMode =
+            start: new Date()
+            from: froms
+            to: [0, 0]
+            duration: 800
+            animate: (frameStateTime)->
+              time = (frameStateTime - @start) / @duration
+              @current = [@from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time)),
+                          @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))]
+              return time <= 1
+        @map.getView().setCenter(@position)
       if mode == 'headingup'
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
       else
@@ -124,14 +141,13 @@ class Kanimarker
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / @duration
           if @duration > 8000
-            @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.linear(time))
-            @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.linear(time))
-          else if @duration > 2000
-            @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.inAndOut(time))
-            @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.inAndOut(time))
+            easing = ol.easing.linear(time)
+          else if  @duration > 2000
+            easing = ool.easing.inAndOut(time)
           else
-            @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time))
-            @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))
+            easing = ol.easing.easeOut(time)
+          @current = [@from[0] + ((@to[0] - @from[0]) * easing),
+                      @from[1] + ((@to[1] - @from[1]) * easing)]
           return time <= 1
 
     # フェードイン
@@ -288,35 +304,37 @@ class Kanimarker
       vectorContext.setImageStyle(iconStyle)
       vectorContext.drawPointGeometry(new ol.geom.Point(position), null)
 
-      # 矢印
-      context.save() #キャンバスのステートをバックアップ
+      context.save()
 
-      # heading up なら画面中央にマーカーを移動
       if @mode != 'normal'
-        context.translate(context.canvas.width / 2, context.canvas.height / 2)
+        if @animations.moveMode?
+          if @animations.moveMode.animate(frameState.time)
+            position = position.slice()
+            position[0] -= @animations.moveMode.current[0]
+            position[1] -= @animations.moveMode.current[1]
+            frameState.animate = true
+            pixel = @map.getPixelFromCoordinate(position)
+            context.translate(pixel[0] * pixelRatio, pixel[1] * pixelRatio)
+          else
+            @animations.moveMode = null
+            context.translate(context.canvas.width / 2, context.canvas.height / 2)
+        else
+          context.translate(context.canvas.width / 2, context.canvas.height / 2)
       else
         pixel = @map.getPixelFromCoordinate(position)
         context.translate(pixel[0] * pixelRatio, pixel[1] * pixelRatio)
-
-      # 座標空間をcoordinateを中心にdig度回転する
-      # この時、マップ全体の回転も考慮する必要がある
       context.rotate((direction / 180 * Math.PI) + frameState.viewState.rotation)
-
-      # retina 対応
       context.scale(pixelRatio, pixelRatio)
-
-      # 矢印のパスを定義(このパスはSVGからでも移植できるけど、原点に注意)
       context.beginPath()
       context.moveTo(0, -20)
       context.lineTo(-7, -12)
       context.lineTo(7, -12)
       context.closePath()
-
-      # 塗りつぶす。ここでstrokeやfill、スタイルをセット
       context.fillStyle = "rgba(0, 160, 233, #{opacity})"
       context.strokeStyle = "rgba(255, 255, 255, #{opacity})"
       context.lineWidth = 3
       context.fill()
+
       context.restore() #キャンバスのステートを復帰(必ず実行すること)
 
     if @debug_
@@ -326,6 +344,7 @@ class Kanimarker
         ' Mode:' + @mode )
       if @animations.move? then txt += ' [Move]'
       if @animations.heading? then txt += ' [Rotate]'
+      ######
       if @animations.accuracy? then txt += ' [Accuracy]'
       if @animations.fade? then txt += ' [Fadein/Out]'
       context.save()
@@ -346,6 +365,14 @@ class Kanimarker
           position = @animations.move.current
         else
           @animations.move = null
+      if @animations.moveMode?
+        if @animations.moveMode.animate(frameState.time)
+          position = position.slice()
+          position[0] += @animations.moveMode.current[0]
+          position[1] += @animations.moveMode.current[1]
+          frameState.animate = true
+        else
+          @animations.moveMode = null
       frameState.viewState.center[0] = position[0]
       frameState.viewState.center[1] = position[1]
       if @mode == 'headingup'

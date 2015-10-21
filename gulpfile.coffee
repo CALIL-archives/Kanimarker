@@ -3,7 +3,7 @@ coffee = require('gulp-coffee')
 gutil = require('gulp-util')
 codo = require('gulp-codo')
 
-gulp.task 'default', ['codo'], ->
+gulp.task 'default', [], ->
   return gulp.src('kanimarker.coffee').pipe(coffee(bare: true).on('error', gutil.log)).pipe gulp.dest('./')
 
 gulp.task 'codo', ->

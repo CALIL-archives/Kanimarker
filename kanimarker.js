@@ -47,6 +47,7 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.setMode = function(mode) {
+    var from, froms, to;
     if (mode !== 'normal' && mode !== 'centered' && mode !== 'headingup') {
       throw 'invalid mode';
     }
@@ -58,8 +59,28 @@ Kanimarker = (function() {
         return false;
       }
       this.mode = mode;
-      if (this.position !== null) {
-        this.map.getView().setCenter(this.position.slice());
+      if (this.position !== null && mode !== 'normal') {
+        from = this.map.getView().getCenter();
+        to = this.position;
+        if (from[0] - to[0] !== 0 || from[1] - to[1] !== 0) {
+          froms = [from[0] - to[0], from[1] - to[1]];
+          if ((this.animations.moveMode != null) && this.animations.animate()) {
+            froms = [animations.current[0], animations.current[1]];
+          }
+          this.animations.moveMode = {
+            start: new Date(),
+            from: froms,
+            to: [0, 0],
+            duration: 800,
+            animate: function(frameStateTime) {
+              var time;
+              time = (frameStateTime - this.start) / this.duration;
+              this.current = [this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.easeOut(time)), this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.easeOut(time))];
+              return time <= 1;
+            }
+          };
+        }
+        this.map.getView().setCenter(this.position);
       }
       if (mode === 'headingup') {
         this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
@@ -101,18 +122,16 @@ Kanimarker = (function() {
         to: toPosition.slice(),
         duration: this.moveDuration,
         animate: function(frameStateTime) {
-          var time;
+          var easing, time;
           time = (frameStateTime - this.start) / this.duration;
           if (this.duration > 8000) {
-            this.current[0] = this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.linear(time));
-            this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.linear(time));
+            easing = ol.easing.linear(time);
           } else if (this.duration > 2000) {
-            this.current[0] = this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.inAndOut(time));
-            this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.inAndOut(time));
+            easing = ool.easing.inAndOut(time);
           } else {
-            this.current[0] = this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.easeOut(time));
-            this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.easeOut(time));
+            easing = ol.easing.easeOut(time);
           }
+          this.current = [this.from[0] + ((this.to[0] - this.from[0]) * easing), this.from[1] + ((this.to[1] - this.from[1]) * easing)];
           return time <= 1;
         }
       };
@@ -293,7 +312,21 @@ Kanimarker = (function() {
       vectorContext.drawPointGeometry(new ol.geom.Point(position), null);
       context.save();
       if (this.mode !== 'normal') {
-        context.translate(context.canvas.width / 2, context.canvas.height / 2);
+        if (this.animations.moveMode != null) {
+          if (this.animations.moveMode.animate(frameState.time)) {
+            position = position.slice();
+            position[0] -= this.animations.moveMode.current[0];
+            position[1] -= this.animations.moveMode.current[1];
+            frameState.animate = true;
+            pixel = this.map.getPixelFromCoordinate(position);
+            context.translate(pixel[0] * pixelRatio, pixel[1] * pixelRatio);
+          } else {
+            this.animations.moveMode = null;
+            context.translate(context.canvas.width / 2, context.canvas.height / 2);
+          }
+        } else {
+          context.translate(context.canvas.width / 2, context.canvas.height / 2);
+        }
       } else {
         pixel = this.map.getPixelFromCoordinate(position);
         context.translate(pixel[0] * pixelRatio, pixel[1] * pixelRatio);
@@ -345,6 +378,16 @@ Kanimarker = (function() {
           position = this.animations.move.current;
         } else {
           this.animations.move = null;
+        }
+      }
+      if (this.animations.moveMode != null) {
+        if (this.animations.moveMode.animate(frameState.time)) {
+          position = position.slice();
+          position[0] += this.animations.moveMode.current[0];
+          position[1] += this.animations.moveMode.current[1];
+          frameState.animate = true;
+        } else {
+          this.animations.moveMode = null;
         }
       }
       frameState.viewState.center[0] = position[0];
