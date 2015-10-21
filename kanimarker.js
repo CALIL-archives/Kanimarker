@@ -50,7 +50,7 @@ Kanimarker = (function() {
     return this.fadeInOutAnimationState_ = null;
   };
 
-  Kanimarker.prototype.showDebugInfomation = function(newValue) {
+  Kanimarker.prototype.showDebugInformation = function(newValue) {
     this.debug_ = newValue;
     return this.map.render();
   };
@@ -318,10 +318,10 @@ Kanimarker = (function() {
         radius: 8 * pixelRatio,
         snapToPixel: false,
         fill: new ol.style.Fill({
-          color: "rgba(0, 160, 233, " + (1.0 * opacity) + ")"
+          color: "rgba(0, 160, 233, " + opacity + ")"
         }),
         stroke: new ol.style.Stroke({
-          color: "rgba(255, 255, 255, " + (1.0 * opacity) + ")",
+          color: "rgba(255, 255, 255, " + opacity + ")",
           width: 3 * pixelRatio
         })
       });
@@ -341,8 +341,8 @@ Kanimarker = (function() {
       context.lineTo(-7, -12);
       context.lineTo(7, -12);
       context.closePath();
-      context.fillStyle = "rgba(0, 160, 233, " + (1.0 * opacity) + ")";
-      context.strokeStyle = "rgba(255, 255, 255, " + (1.0 * opacity) + ")";
+      context.fillStyle = "rgba(0, 160, 233, " + opacity + ")";
+      context.strokeStyle = "rgba(255, 255, 255, " + opacity + ")";
       context.lineWidth = 3;
       context.fill();
       context.restore();
