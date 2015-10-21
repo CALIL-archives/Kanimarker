@@ -9,12 +9,14 @@ http://opensource.org/licenses/mit-license.php
 ###
 
 class Kanimarker
-
   # @property [ol.Map] マップオブジェクト（読み込み専用）
   map: null
 
-  # @property [Boolean] 追従モードの状態（読み込み専用）
-  headingUp: false
+  # @property [String] 表示モードの状態（読み込み専用）
+  # normal ... 通常モード
+  # centered ... 追従モード
+  # headingup ... ヘディングアップモード
+  mode: 'normal'
 
   # @property [Array<Number>] マーカーの位置（読み込み専用）
   position: null
@@ -69,28 +71,32 @@ class Kanimarker
 
   # デバッグ表示の有無を設定する
   #
-  # @param newValue {Boolean} する:true, しない: false
+  # @param newValue {Boolean} normal/centered/headingup
   #
-  showDebugInfomation: (newValue)->
+  showDebugInformation: (newValue)->
     @debug_ = newValue
     @map.render()
 
   # 追従モードの設定をする
   #
-  # @param newValue {Boolean} する:true, しない: false
+  # @param newMode {String} する:true, しない: false
   #
-  setHeadingUp: (newValue)->
-    if @headingUp != newValue
-      if newValue == true and not @position?
-        return
-      @headingUp = newValue
+  setMode: (newMode)->
+    if newMode isnt 'normal' and newMode isnt 'centered' and newMode isnt 'headingup'
+      throw 'invalid mode'
+    if @mode != newMode
+      # 現在地がない場合は、ヘディングアップモードに設定できない
+      if @position is null and (newMode == 'centered' or newMode == 'headingup')
+        return false
+      if @direction is null and newMode == 'headingup'
+        return false
+      @mode = newMode
       @cancelAnimation()
-      if @position?
-        @map.getView().setCenter(@position.slice())
-      if @direction?
+      @map.getView().setCenter(@position.slice())
+      if newMode == 'headingup'
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
       @map.render()
-      @dispatch('change:headingup', newValue)
+      @dispatch('change:mode', newMode)
 
   # 現在地を設定する
   #
@@ -115,7 +121,7 @@ class Kanimarker
     @position = toPosition
 
     # 追従モードの場合はマップに場所をセットする
-    if @headingUp and toPosition?
+    if @mode isnt 'normal' and toPosition?
       @map.getView().setCenter(toPosition.slice())
 
     # スタート地点から目的地に移動する
@@ -160,8 +166,8 @@ class Kanimarker
 
     # フェードアウト
     if fromPosition? and not toPosition?
-      if @headingUp
-        @setHeadingUp(false)
+      if @mode isnt 'normal'
+        @setMode 'normal'
       @moveAnimationState_ = null
       @fadeInOutAnimationState_ =
         start: new Date()
@@ -253,7 +259,7 @@ class Kanimarker
     @direction = newDirection
 
     # 追従モードの場合は先にセットする
-    if @headingUp
+    if @mode is 'headingup'
       @map.getView().setRotation(-(newDirection / 180 * Math.PI))
 
     if not silent
@@ -322,9 +328,9 @@ class Kanimarker
       iconStyle = new ol.style.Circle(
         radius: 8 * pixelRatio
         snapToPixel: false
-        fill: new ol.style.Fill(color: "rgba(0, 160, 233, #{1.0 * opacity})")
+        fill: new ol.style.Fill(color: "rgba(0, 160, 233, #{opacity})")
         stroke: new ol.style.Stroke(
-          color: "rgba(255, 255, 255, #{1.0 * opacity})"
+          color: "rgba(255, 255, 255, #{opacity})"
           width: 3 * pixelRatio)
       )
       vectorContext.setImageStyle(iconStyle)
@@ -334,7 +340,7 @@ class Kanimarker
       context.save() #キャンバスのステートをバックアップ
 
       # heading up なら画面中央にマーカーを移動
-      if @headingUp
+      if @mode != 'normal'
         context.translate(context.canvas.width / 2, context.canvas.height / 2)
       else
         pixel = @map.getPixelFromCoordinate(position)
@@ -355,8 +361,8 @@ class Kanimarker
       context.closePath()
 
       # 塗りつぶす。ここでstrokeやfill、スタイルをセット
-      context.fillStyle = "rgba(0, 160, 233, #{1.0 * opacity})"
-      context.strokeStyle = "rgba(255, 255, 255, #{1.0 * opacity})"
+      context.fillStyle = "rgba(0, 160, 233, #{opacity})"
+      context.strokeStyle = "rgba(255, 255, 255, #{opacity})"
       context.lineWidth = 3
       context.fill()
       #context.stroke()
@@ -368,7 +374,7 @@ class Kanimarker
         '現在地': kanimarker.position
         '方向': kanimarker.direction
         '計測精度': kanimarker.accuracy
-        'モード': `kanimarker.headingUp ? '追従モード' : 'ビューモード'`
+        'モード': kanimarker.mode
         '移動': `(kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
         '回転': `(kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
         '計測精度': `(kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
@@ -384,24 +390,27 @@ class Kanimarker
 
   # @nodoc マップ描画前の処理
   precompose_: (event)->
-    if @position? and @headingUp
+    if @position isnt null and @mode != 'normal'
       frameState = event.frameState
       position = @position
-      direction = @direction
+      if @mode == 'headingup'
+        direction = @direction
       if @moveAnimationState_?
         if @moveAnimationState_.animate(frameState.time)
           position = @moveAnimationState_.current
-      if @directionAnimationState_?
-        if @directionAnimationState_.animate(frameState.time)
-          direction = @directionAnimationState_.current
+      if @mode == 'headingup'
+        if @directionAnimationState_?
+          if @directionAnimationState_.animate(frameState.time)
+            direction = @directionAnimationState_.current
       frameState.viewState.center[0] = position[0]
       frameState.viewState.center[1] = position[1]
-      frameState.viewState.rotation = -(direction / 180 * Math.PI)
+      if @mode == 'headingup'
+        frameState.viewState.rotation = -(direction / 180 * Math.PI)
 
   # @nodoc ドラッグイベントの処理
   pointerdrag_: ->
-    if @headingUp
-      @setHeadingUp(false)
+    if @mode isnt 'normal'
+      @setMode('normal')
 
   # イベントハンドラーを設定する
   #

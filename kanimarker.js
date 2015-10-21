@@ -12,7 +12,7 @@ var Kanimarker;
 Kanimarker = (function() {
   Kanimarker.prototype.map = null;
 
-  Kanimarker.prototype.headingUp = false;
+  Kanimarker.prototype.mode = 'normal';
 
   Kanimarker.prototype.position = null;
 
@@ -50,26 +50,30 @@ Kanimarker = (function() {
     return this.fadeInOutAnimationState_ = null;
   };
 
-  Kanimarker.prototype.showDebugInfomation = function(newValue) {
+  Kanimarker.prototype.showDebugInformation = function(newValue) {
     this.debug_ = newValue;
     return this.map.render();
   };
 
-  Kanimarker.prototype.setHeadingUp = function(newValue) {
-    if (this.headingUp !== newValue) {
-      if (newValue === true && (this.position == null)) {
-        return;
+  Kanimarker.prototype.setMode = function(newMode) {
+    if (newMode !== 'normal' && newMode !== 'centered' && newMode !== 'headingup') {
+      throw 'invalid mode';
+    }
+    if (this.mode !== newMode) {
+      if (this.position === null && (newMode === 'centered' || newMode === 'headingup')) {
+        return false;
       }
-      this.headingUp = newValue;
+      if (this.direction === null && newMode === 'headingup') {
+        return false;
+      }
+      this.mode = newMode;
       this.cancelAnimation();
-      if (this.position != null) {
-        this.map.getView().setCenter(this.position.slice());
-      }
-      if (this.direction != null) {
+      this.map.getView().setCenter(this.position.slice());
+      if (newMode === 'headingup') {
         this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
       }
       this.map.render();
-      return this.dispatch('change:headingup', newValue);
+      return this.dispatch('change:mode', newMode);
     }
   };
 
@@ -93,7 +97,7 @@ Kanimarker = (function() {
       fromPosition = this.position;
     }
     this.position = toPosition;
-    if (this.headingUp && (toPosition != null)) {
+    if (this.mode !== 'normal' && (toPosition != null)) {
       this.map.getView().setCenter(toPosition.slice());
     }
     if ((fromPosition != null) && (toPosition != null)) {
@@ -146,8 +150,8 @@ Kanimarker = (function() {
       };
     }
     if ((fromPosition != null) && (toPosition == null)) {
-      if (this.headingUp) {
-        this.setHeadingUp(false);
+      if (this.mode !== 'normal') {
+        this.setMode('normal');
       }
       this.moveAnimationState_ = null;
       this.fadeInOutAnimationState_ = {
@@ -251,7 +255,7 @@ Kanimarker = (function() {
       }
     };
     this.direction = newDirection;
-    if (this.headingUp) {
+    if (this.mode === 'headingup') {
       this.map.getView().setRotation(-(newDirection / 180 * Math.PI));
     }
     if (!silent) {
@@ -318,17 +322,17 @@ Kanimarker = (function() {
         radius: 8 * pixelRatio,
         snapToPixel: false,
         fill: new ol.style.Fill({
-          color: "rgba(0, 160, 233, " + (1.0 * opacity) + ")"
+          color: "rgba(0, 160, 233, " + opacity + ")"
         }),
         stroke: new ol.style.Stroke({
-          color: "rgba(255, 255, 255, " + (1.0 * opacity) + ")",
+          color: "rgba(255, 255, 255, " + opacity + ")",
           width: 3 * pixelRatio
         })
       });
       vectorContext.setImageStyle(iconStyle);
       vectorContext.drawPointGeometry(new ol.geom.Point(position), null);
       context.save();
-      if (this.headingUp) {
+      if (this.mode !== 'normal') {
         context.translate(context.canvas.width / 2, context.canvas.height / 2);
       } else {
         pixel = this.map.getPixelFromCoordinate(position);
@@ -341,8 +345,8 @@ Kanimarker = (function() {
       context.lineTo(-7, -12);
       context.lineTo(7, -12);
       context.closePath();
-      context.fillStyle = "rgba(0, 160, 233, " + (1.0 * opacity) + ")";
-      context.strokeStyle = "rgba(255, 255, 255, " + (1.0 * opacity) + ")";
+      context.fillStyle = "rgba(0, 160, 233, " + opacity + ")";
+      context.strokeStyle = "rgba(255, 255, 255, " + opacity + ")";
       context.lineWidth = 3;
       context.fill();
       context.restore();
@@ -352,7 +356,7 @@ Kanimarker = (function() {
         '現在地': kanimarker.position,
         '方向': kanimarker.direction,
         '計測精度': kanimarker.accuracy,
-        'モード': kanimarker.headingUp ? '追従モード' : 'ビューモード',
+        'モード': kanimarker.mode,
         '移動': (kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
         '回転': (kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
         '計測精度': (kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
@@ -370,29 +374,35 @@ Kanimarker = (function() {
 
   Kanimarker.prototype.precompose_ = function(event) {
     var direction, frameState, position;
-    if ((this.position != null) && this.headingUp) {
+    if (this.position !== null && this.mode !== 'normal') {
       frameState = event.frameState;
       position = this.position;
-      direction = this.direction;
+      if (this.mode === 'headingup') {
+        direction = this.direction;
+      }
       if (this.moveAnimationState_ != null) {
         if (this.moveAnimationState_.animate(frameState.time)) {
           position = this.moveAnimationState_.current;
         }
       }
-      if (this.directionAnimationState_ != null) {
-        if (this.directionAnimationState_.animate(frameState.time)) {
-          direction = this.directionAnimationState_.current;
+      if (this.mode === 'headingup') {
+        if (this.directionAnimationState_ != null) {
+          if (this.directionAnimationState_.animate(frameState.time)) {
+            direction = this.directionAnimationState_.current;
+          }
         }
       }
       frameState.viewState.center[0] = position[0];
       frameState.viewState.center[1] = position[1];
-      return frameState.viewState.rotation = -(direction / 180 * Math.PI);
+      if (this.mode === 'headingup') {
+        return frameState.viewState.rotation = -(direction / 180 * Math.PI);
+      }
     }
   };
 
   Kanimarker.prototype.pointerdrag_ = function() {
-    if (this.headingUp) {
-      return this.setHeadingUp(false);
+    if (this.mode !== 'normal') {
+      return this.setMode('normal');
     }
   };
 
