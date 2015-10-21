@@ -3,9 +3,12 @@
 [![Circle CI](https://circleci.com/gh/CALIL/Kanimarker/tree/master.svg?style=svg)](https://circleci.com/gh/CALIL/Kanimarker/tree/master)
 [![Code Climate](https://codeclimate.com/github/CALIL/Kanimarker/badges/gpa.svg)](https://codeclimate.com/github/CALIL/Kanimarker)
 
-Position Marker for OpenLayers3
+Kanimarker is "self-position" marker for [OpenLayers 3](http://openlayers.org/).
+Manage marker and animations for heading-up mode.
 
-## Hot to use
+## Usage
+
+This is simple use-case.
 
 ```javascript
 var map = new ol.Map({ ... });
@@ -13,17 +16,9 @@ kanimarker = new Kanimarker(map);
 kanimarker.setPosition([137.528032,35.573162],50);
 ```
 
-## Demo
-
-https://s3-ap-northeast-1.amazonaws.com/kanimarker/demo.html
-
-## Document
-
-https://s3-ap-northeast-1.amazonaws.com/kanimarker/doc/class/Kanimarker.html
-
-## Endpoint
-
-https://s3-ap-northeast-1.amazonaws.com/kanimarker/kanimarker.js
+## [Examples](https://s3-ap-northeast-1.amazonaws.com/kanimarker/demo.html)
+## [Document](https://s3-ap-northeast-1.amazonaws.com/kanimarker/doc/class/Kanimarker.html)
+## [CDN](https://s3-ap-northeast-1.amazonaws.com/kanimarker/kanimarker.js)
 
 ## License
 
