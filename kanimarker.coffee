@@ -56,10 +56,6 @@ class Kanimarker
   #
   cancelAnimation: ->
     @animations = {}
-    #@animations.move = null
-    #@animations.heading = null
-    #@animations.accuracy = null
-    #@animations.fade = null
 
   # デバッグ表示の有無を設定する
   #
@@ -82,12 +78,13 @@ class Kanimarker
       if @direction is null and newMode == 'headingup'
         return false
       @mode = newMode
-      @cancelAnimation()
+      #@cancelAnimation()
       if @position isnt null
         @map.getView().setCenter(@position.slice())
       if newMode == 'headingup'
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
-      @map.render()
+      else
+        @map.render()
       @dispatch('change:mode', newMode)
       return true
 

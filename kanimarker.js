@@ -38,10 +38,7 @@ Kanimarker = (function() {
   }
 
   Kanimarker.prototype.cancelAnimation = function() {
-    this.animations.move = null;
-    this.animations.heading = null;
-    this.animations.accuracy = null;
-    return this.animations.fade = null;
+    return this.animations = {};
   };
 
   Kanimarker.prototype.showDebugInformation = function(newValue) {
@@ -61,14 +58,14 @@ Kanimarker = (function() {
         return false;
       }
       this.mode = newMode;
-      this.cancelAnimation();
       if (this.position !== null) {
         this.map.getView().setCenter(this.position.slice());
       }
       if (newMode === 'headingup') {
         this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
+      } else {
+        this.map.render();
       }
-      this.map.render();
       this.dispatch('change:mode', newMode);
       return true;
     }
