@@ -71,7 +71,7 @@ class Kanimarker
   #
   # @param newValue {Boolean} する:true, しない: false
   #
-  showDebugInfomation: (newValue)->
+  showDebugInformation: (newValue)->
     @debug_ = newValue
     @map.render()
 
@@ -322,9 +322,9 @@ class Kanimarker
       iconStyle = new ol.style.Circle(
         radius: 8 * pixelRatio
         snapToPixel: false
-        fill: new ol.style.Fill(color: "rgba(0, 160, 233, #{1.0 * opacity})")
+        fill: new ol.style.Fill(color: "rgba(0, 160, 233, #{opacity})")
         stroke: new ol.style.Stroke(
-          color: "rgba(255, 255, 255, #{1.0 * opacity})"
+          color: "rgba(255, 255, 255, #{opacity})"
           width: 3 * pixelRatio)
       )
       vectorContext.setImageStyle(iconStyle)
@@ -355,8 +355,8 @@ class Kanimarker
       context.closePath()
 
       # 塗りつぶす。ここでstrokeやfill、スタイルをセット
-      context.fillStyle = "rgba(0, 160, 233, #{1.0 * opacity})"
-      context.strokeStyle = "rgba(255, 255, 255, #{1.0 * opacity})"
+      context.fillStyle = "rgba(0, 160, 233, #{opacity})"
+      context.strokeStyle = "rgba(255, 255, 255, #{opacity})"
       context.lineWidth = 3
       context.fill()
       #context.stroke()
