@@ -1,6 +1,6 @@
 {
   "name": "Kanimarker",
-  "version": "1.0.0",
+  "version": "1.3.0-dev",
   "description": "\"self position\" marker for OpenLayers3",
   "main": "kanimarker.js",
   "directories": {
