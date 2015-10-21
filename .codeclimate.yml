@@ -11,7 +11,7 @@ ratings:
   - "**.coffee"
   - "**.js"
 exclude_paths:
-- gulpfile.js
+- gulpfile.coffee
 - README.md
 - circle.yml
 - package.json

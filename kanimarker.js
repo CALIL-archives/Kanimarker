@@ -1,3 +1,12 @@
+
+/*
+
+Kanimarker
+
+Copyright (c) 2015 CALIL Inc.
+This software is released under the MIT License.
+http://opensource.org/licenses/mit-license.php
+ */
 var Kanimarker;
 
 Kanimarker = (function() {
