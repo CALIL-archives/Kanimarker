@@ -7,9 +7,9 @@
 Draw marker(GPS or other any locations) and manage animations for heading-up mode.<br>
 Easy install and integration with OpenLayers 3.
 
-`Kanimarker` ‚Í [OpenLayers 3](http://openlayers.org/) ‚Å“®ì‚·‚éŒ»İ’n•\¦ƒ‰ƒCƒuƒ‰ƒŠ‚Å‚·B
-GPS‚â‚»‚Ì‘¼‚Ì—lX‚ÈƒƒP[ƒVƒ‡ƒ“iŒ»İ’nj‚ğ•\¦‚·‚é‚Æ‚Æ‚à‚ÉAƒwƒfƒBƒ“ƒOƒAƒbƒvƒ‚[ƒh‚â’Ç]ƒ‚[ƒh‚È‚Ç‚Ì
-ƒiƒrƒQ[ƒVƒ‡ƒ“‚Å•W€“I‚É•K—v‚Æ‚³‚ê‚éƒAƒjƒ[ƒVƒ‡ƒ“‚ğŠÇ—‚µ‚Ü‚·BOpenLayers 3‚ÉŠÈ’P‚ÉƒCƒ“ƒXƒg[ƒ‹‚µ‚Ä˜AŒg‚Å‚«‚Ü‚·B
+`Kanimarker` ã¯ [OpenLayers 3](http://openlayers.org/) ã§å‹•ä½œã™ã‚‹ç¾åœ¨åœ°è¡¨ç¤ºãƒ©ã‚¤ãƒ–ãƒ©ãƒªã§ã™ã€‚
+GPSã‚„ãã®ä»–ã®æ§˜ã€…ãªãƒ­ã‚±ãƒ¼ã‚·ãƒ§ãƒ³ï¼ˆç¾åœ¨åœ°ï¼‰ã‚’è¡¨ç¤ºã™ã‚‹ã¨ã¨ã‚‚ã«ã€ãƒ˜ãƒ‡ã‚£ãƒ³ã‚°ã‚¢ãƒƒãƒ—ãƒ¢ãƒ¼ãƒ‰ã‚„è¿½å¾“ãƒ¢ãƒ¼ãƒ‰ãªã©ã®
+ãƒŠãƒ“ã‚²ãƒ¼ã‚·ãƒ§ãƒ³ã§æ¨™æº–çš„ã«å¿…è¦ã¨ã•ã‚Œã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ç®¡ç†ã—ã¾ã™ã€‚OpenLayers 3ã«ç°¡å˜ã«ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¦é€£æºã§ãã¾ã™ã€‚
 
 
 ## Usage
