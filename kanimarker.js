@@ -20,13 +20,7 @@ Kanimarker = (function() {
 
   Kanimarker.prototype.accuracy = 0;
 
-  Kanimarker.prototype.moveAnimationState_ = null;
-
-  Kanimarker.prototype.directionAnimationState_ = null;
-
-  Kanimarker.prototype.accuracyAnimationState_ = null;
-
-  Kanimarker.prototype.fadeInOutAnimationState_ = null;
+  Kanimarker.prototype.animations = {};
 
   Kanimarker.prototype.debug_ = false;
 
@@ -44,10 +38,10 @@ Kanimarker = (function() {
   }
 
   Kanimarker.prototype.cancelAnimation = function() {
-    this.moveAnimationState_ = null;
-    this.directionAnimationState_ = null;
-    this.accuracyAnimationState_ = null;
-    return this.fadeInOutAnimationState_ = null;
+    this.animations.move = null;
+    this.animations.heading = null;
+    this.animations.accuracy = null;
+    return this.animations.fade = null;
   };
 
   Kanimarker.prototype.showDebugInformation = function(newValue) {
@@ -94,8 +88,8 @@ Kanimarker = (function() {
     if (accuracy != null) {
       this.setAccuracy(accuracy, true);
     }
-    if (this.moveAnimationState_ != null) {
-      fromPosition = this.moveAnimationState_.current;
+    if (this.animations.move != null) {
+      fromPosition = this.animations.move.current;
     } else {
       fromPosition = this.position;
     }
@@ -104,7 +98,7 @@ Kanimarker = (function() {
       this.map.getView().setCenter(toPosition.slice());
     }
     if ((fromPosition != null) && (toPosition != null)) {
-      this.moveAnimationState_ = {
+      this.animations.move = {
         start: new Date(),
         from: fromPosition.slice(),
         current: fromPosition.slice(),
@@ -128,7 +122,7 @@ Kanimarker = (function() {
       };
     }
     if ((fromPosition == null) && (toPosition != null)) {
-      this.fadeInOutAnimationState_ = {
+      this.animations.fade = {
         start: new Date(),
         from: 0,
         current: 0,
@@ -148,8 +142,8 @@ Kanimarker = (function() {
       if (this.mode !== 'normal') {
         this.setMode('normal');
       }
-      this.moveAnimationState_ = null;
-      this.fadeInOutAnimationState_ = {
+      this.animations.move = null;
+      this.animations.fade = {
         start: new Date(),
         from: 1,
         current: 1,
@@ -178,13 +172,13 @@ Kanimarker = (function() {
     if (this.accuracy === accuracy) {
       return;
     }
-    if (this.accuracyAnimationState_ != null) {
-      from = this.accuracyAnimationState_.current;
+    if (this.animations.accuracy != null) {
+      from = this.animations.accuracy.current;
     } else {
       from = this.accuracy;
     }
     this.accuracy = accuracy;
-    this.accuracyAnimationState_ = {
+    this.animations.accuracy = {
       start: new Date(),
       from: from,
       to: accuracy,
@@ -217,7 +211,7 @@ Kanimarker = (function() {
     while (rotation > 180) {
       rotation -= 360;
     }
-    this.directionAnimationState_ = {
+    this.animations.heading = {
       start: new Date(),
       from: rotation,
       to: newDirection,
@@ -246,37 +240,37 @@ Kanimarker = (function() {
     position = this.position;
     accuracy = this.accuracy;
     direction = this.direction;
-    if (this.moveAnimationState_ != null) {
-      if (this.moveAnimationState_.animate(frameState.time)) {
-        position = this.moveAnimationState_.current;
+    if (this.animations.move != null) {
+      if (this.animations.move.animate(frameState.time)) {
+        position = this.animations.move.current;
         frameState.animate = true;
       } else {
-        this.moveAnimationState_ = null;
+        this.animations.move = null;
       }
     }
-    if (this.fadeInOutAnimationState_ != null) {
-      if (this.fadeInOutAnimationState_.animate(frameState.time)) {
-        opacity = this.fadeInOutAnimationState_.current;
-        position = this.fadeInOutAnimationState_.animationPosition;
+    if (this.animations.fade != null) {
+      if (this.animations.fade.animate(frameState.time)) {
+        opacity = this.animations.fade.current;
+        position = this.animations.fade.animationPosition;
         frameState.animate = true;
       } else {
-        this.fadeInOutAnimationState_ = null;
+        this.animations.fade = null;
       }
     }
-    if (this.directionAnimationState_ != null) {
-      if (this.directionAnimationState_.animate(frameState.time)) {
-        direction = this.directionAnimationState_.current;
+    if (this.animations.heading != null) {
+      if (this.animations.heading.animate(frameState.time)) {
+        direction = this.animations.heading.current;
         frameState.animate = true;
       } else {
-        this.directionAnimationState_ = null;
+        this.animations.heading = null;
       }
     }
-    if (this.accuracyAnimationState_ != null) {
-      if (this.accuracyAnimationState_.animate(frameState.time)) {
-        accuracy = this.accuracyAnimationState_.current;
+    if (this.animations.accuracy != null) {
+      if (this.animations.accuracy.animate(frameState.time)) {
+        accuracy = this.animations.accuracy.current;
         frameState.animate = true;
       } else {
-        this.accuracyAnimationState_ = null;
+        this.animations.accuracy = null;
       }
     }
     if (position != null) {
@@ -325,17 +319,17 @@ Kanimarker = (function() {
       context.restore();
     }
     if (this.debug_) {
-      debugText = 'Position:' + kanimarker.position + ' Heading:' + kanimarker.direction + ' Accuracy:' + kanimarker.accuracy + ' Mode:' + kanimarker.mode;
-      if (kanimarker.moveAnimationState_ != null) {
+      debugText = 'Position:' + this.position + ' Heading:' + this.direction + ' Accuracy:' + this.accuracy + ' Mode:' + this.mode;
+      if (this.animations.move != null) {
         debugText += ' [Move]';
       }
-      if (kanimarker.directionAnimationState_ != null) {
+      if (this.animations.heading != null) {
         debugText += ' [Rotate]';
       }
-      if (kanimarker.accuracyAnimationState_ != null) {
+      if (this.animations.accuracy != null) {
         debugText += ' [Accuracy]';
       }
-      if (kanimarker.fadeInOutAnimationState_ != null) {
+      if (this.animations.fade != null) {
         debugText += ' [Fadein/Out]';
       }
       context.save();
@@ -353,22 +347,22 @@ Kanimarker = (function() {
     if (this.position !== null && this.mode !== 'normal') {
       frameState = event.frameState;
       position = this.position;
-      if (this.moveAnimationState_ != null) {
-        if (this.moveAnimationState_.animate(frameState.time)) {
-          position = this.moveAnimationState_.current;
+      if (this.animations.move != null) {
+        if (this.animations.move.animate(frameState.time)) {
+          position = this.animations.move.current;
         } else {
-          this.moveAnimationState_ = null;
+          this.animations.move = null;
         }
       }
       frameState.viewState.center[0] = position[0];
       frameState.viewState.center[1] = position[1];
       if (this.mode === 'headingup') {
         direction = this.direction;
-        if (this.directionAnimationState_ != null) {
-          if (this.directionAnimationState_.animate(frameState.time)) {
-            direction = this.directionAnimationState_.current;
+        if (this.animations.heading != null) {
+          if (this.animations.heading.animate(frameState.time)) {
+            direction = this.animations.heading.current;
           } else {
-            this.directionAnimationState_ = null;
+            this.animations.heading = null;
           }
         }
         return frameState.viewState.rotation = -(direction / 180 * Math.PI);

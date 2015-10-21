@@ -28,10 +28,7 @@ class Kanimarker
   accuracy: 0
 
   # @nodoc アニメーション用の内部ステート
-  moveAnimationState_: null
-  directionAnimationState_: null
-  accuracyAnimationState_: null
-  fadeInOutAnimationState_: null
+  animations : {}
 
   # @nodoc デバッグ表示の有無(内部ステート)
   debug_: false
@@ -58,14 +55,15 @@ class Kanimarker
   # 現在進行中のアニメーションをキャンセルする
   #
   cancelAnimation: ->
-    @moveAnimationState_ = null
-    @directionAnimationState_ = null
-    @accuracyAnimationState_ = null
-    @fadeInOutAnimationState_ = null
+    @animations = {}
+    #@animations.move = null
+    #@animations.heading = null
+    #@animations.accuracy = null
+    #@animations.fade = null
 
   # デバッグ表示の有無を設定する
   #
-  # @param newValue {Boolean} normal/centered/headingup
+  # @param newValue {Boolean}
   #
   showDebugInformation: (newValue)->
     @debug_ = newValue
@@ -109,8 +107,8 @@ class Kanimarker
       @setAccuracy(accuracy, true)
 
     # 移動中の場合は中間地点からスタートする
-    if @moveAnimationState_?
-      fromPosition = @moveAnimationState_.current
+    if @animations.move?
+      fromPosition = @animations.move.current
     else
       fromPosition = @position
     @position = toPosition
@@ -121,7 +119,7 @@ class Kanimarker
 
     # スタート地点から目的地に移動する
     if fromPosition? and toPosition?
-      @moveAnimationState_ =
+      @animations.move =
         start: new Date()
         from: fromPosition.slice()
         current: fromPosition.slice()
@@ -142,7 +140,7 @@ class Kanimarker
 
     # フェードイン
     if not fromPosition? and toPosition?
-      @fadeInOutAnimationState_ =
+      @animations.fade =
         start: new Date()
         from: 0
         current: 0
@@ -157,8 +155,8 @@ class Kanimarker
     if fromPosition? and not toPosition?
       if @mode isnt 'normal'
         @setMode 'normal'
-      @moveAnimationState_ = null
-      @fadeInOutAnimationState_ =
+      @animations.move = null
+      @animations.fade =
         start: new Date()
         from: 1
         current: 1
@@ -181,12 +179,12 @@ class Kanimarker
     if @accuracy is accuracy
       return
     # アニメーション中の場合は中間値からスタート
-    if @accuracyAnimationState_?
-      from = @accuracyAnimationState_.current
+    if @animations.accuracy?
+      from = @animations.accuracy.current
     else
       from = @accuracy
     @accuracy = accuracy
-    @accuracyAnimationState_ =
+    @animations.accuracy =
       start: new Date()
       from: from
       to: accuracy
@@ -214,7 +212,7 @@ class Kanimarker
     while rotation > 180
       rotation -= 360
 
-    @directionAnimationState_ =
+    @animations.heading =
       start: new Date()
       from: rotation
       to: newDirection
@@ -244,37 +242,37 @@ class Kanimarker
     direction = @direction
 
     # 位置アニメーション
-    if @moveAnimationState_?
-      if @moveAnimationState_.animate(frameState.time)
-        position = @moveAnimationState_.current
+    if @animations.move?
+      if @animations.move.animate(frameState.time)
+        position = @animations.move.current
         frameState.animate = true
       else
-        @moveAnimationState_ = null
+        @animations.move = null
 
     # フェードインアウトアニメーション
-    if @fadeInOutAnimationState_?
-      if @fadeInOutAnimationState_.animate(frameState.time)
-        opacity = @fadeInOutAnimationState_.current
-        position = @fadeInOutAnimationState_.animationPosition
+    if @animations.fade?
+      if @animations.fade.animate(frameState.time)
+        opacity = @animations.fade.current
+        position = @animations.fade.animationPosition
         frameState.animate = true
       else
-        @fadeInOutAnimationState_ = null
+        @animations.fade = null
 
     # 回転アニメーション
-    if @directionAnimationState_?
-      if @directionAnimationState_.animate(frameState.time)
-        direction = @directionAnimationState_.current
+    if @animations.heading?
+      if @animations.heading.animate(frameState.time)
+        direction = @animations.heading.current
         frameState.animate = true
       else
-        @directionAnimationState_ = null
+        @animations.heading = null
 
     # 円アニメーション
-    if @accuracyAnimationState_?
-      if @accuracyAnimationState_.animate(frameState.time)
-        accuracy = @accuracyAnimationState_.current
+    if @animations.accuracy?
+      if @animations.accuracy.animate(frameState.time)
+        accuracy = @animations.accuracy.current
         frameState.animate = true
       else
-        @accuracyAnimationState_ = null
+        @animations.accuracy = null
 
     # 非表示以外なら描画
     if position?
@@ -333,14 +331,14 @@ class Kanimarker
       context.restore() #キャンバスのステートを復帰(必ず実行すること)
 
     if @debug_
-      debugText = ('Position:' + kanimarker.position +
-        ' Heading:' + kanimarker.direction +
-        ' Accuracy:' + kanimarker.accuracy +
-        ' Mode:' + kanimarker.mode )
-      if kanimarker.moveAnimationState_? then debugText+=' [Move]'
-      if kanimarker.directionAnimationState_? then debugText+=' [Rotate]'
-      if kanimarker.accuracyAnimationState_? then debugText+=' [Accuracy]'
-      if kanimarker.fadeInOutAnimationState_? then debugText+=' [Fadein/Out]'
+      debugText = ('Position:' + @position +
+        ' Heading:' + @direction +
+        ' Accuracy:' + @accuracy +
+        ' Mode:' + @mode )
+      if @animations.move? then debugText+=' [Move]'
+      if @animations.heading? then debugText+=' [Rotate]'
+      if @animations.accuracy? then debugText+=' [Accuracy]'
+      if @animations.fade? then debugText+=' [Fadein/Out]'
       context.save()
       context.fillStyle = "rgba(255, 255, 255, 0.6)"
       context.fillRect(0, context.canvas.height - 20, context.canvas.width, 20)
@@ -354,20 +352,20 @@ class Kanimarker
     if @position isnt null and @mode != 'normal'
       frameState = event.frameState
       position = @position
-      if @moveAnimationState_?
-        if @moveAnimationState_.animate(frameState.time)
-          position = @moveAnimationState_.current
+      if @animations.move?
+        if @animations.move.animate(frameState.time)
+          position = @animations.move.current
         else
-          @moveAnimationState_ = null
+          @animations.move = null
       frameState.viewState.center[0] = position[0]
       frameState.viewState.center[1] = position[1]
       if @mode == 'headingup'
         direction = @direction
-        if @directionAnimationState_?
-          if @directionAnimationState_.animate(frameState.time)
-            direction = @directionAnimationState_.current
+        if @animations.heading?
+          if @animations.heading.animate(frameState.time)
+            direction = @animations.heading.current
           else
-            @directionAnimationState_ = null
+            @animations.heading = null
         frameState.viewState.rotation = -(direction / 180 * Math.PI)
 
   # @nodoc ドラッグイベントの処理
