@@ -22,8 +22,14 @@ kanimarker = new Kanimarker(map);
 kanimarker.setPosition([137.528032,35.573162],50);
 ```
 
-## [Examples](https://s3-ap-northeast-1.amazonaws.com/kanimarker/demo.html)
-## [Document](https://s3-ap-northeast-1.amazonaws.com/kanimarker/doc/class/Kanimarker.html)
+## Examples
+
+- [Full control demo](https://s3-ap-northeast-1.amazonaws.com/kanimarker/demo.html)
+
+## Document
+
+- [Kanimarker Class](https://s3-ap-northeast-1.amazonaws.com/kanimarker/doc/class/Kanimarker.html)
+
 ## [CDN](https://s3-ap-northeast-1.amazonaws.com/kanimarker/kanimarker.js)
 
 ## License
