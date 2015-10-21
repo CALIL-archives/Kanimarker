@@ -34,16 +34,41 @@
         </p>
       </nav>
       <div id='filecontents'>
-        <h1 id="kanimarker">Kanimarker</h1><p>Position Marker for OpenLayers3</p><h2 id="compile">Compile</h2>
-<pre><code class="lang-bash">npm update
-gulp
+        <h1 id="kanimarker">Kanimarker</h1><p><a href="https://circleci.com/gh/CALIL/Kanimarker/tree/master"><img src="https://circleci.com/gh/CALIL/Kanimarker/tree/master.svg?style=svg" alt="Circle CI"></a>
+<a href="https://codeclimate.com/github/CALIL/Kanimarker"><img src="https://codeclimate.com/github/CALIL/Kanimarker/badges/gpa.svg" alt="Code Climate"></a></p><p><code>Kanimarker</code> is &quot;self-position&quot; marker library for <a href="http://openlayers.org/">OpenLayers 3</a>. <br>
+Draw marker(GPS or other any locations) and manage animations for heading-up mode.<br>
+Easy install and integration with OpenLayers 3.</p><p><code>Kanimarker</code> �� <a href="http://openlayers.org/">OpenLayers 3</a> �œ��삷�錻�ݒn�\�����C�u�����ł��B
+GPS�₻�̑��̗l�X�ȃ��P�[�V�����i���ݒn�j���\�������ƂƂ��ɁA�w�f�B���O�A�b�v���[�h���Ǐ]���[�h�Ȃǂ�
+�i�r�Q�[�V�����ŕW���I�ɕK�v�Ƃ������A�j���[�V�������Ǘ����܂��BOpenLayers 3�ɊȒP�ɃC���X�g�[�����ĘA�g�ł��܂��B</p><h2 id="usage">Usage</h2><p>This is simple use-case.</p><pre><code class="lang-javascript">var map = new ol.Map({ ... });
+kanimarker = new Kanimarker(map);
+kanimarker.setPosition([137.528032,35.573162],50);
 </code></pre>
-<h2 id="demo">Demo</h2><p><a href="https://s3-ap-northeast-1.amazonaws.com/kanimarker/demo.html">https://s3-ap-northeast-1.amazonaws.com/kanimarker/demo.html</a></p><h2 id="document">Document</h2><p><a href="https://s3-ap-northeast-1.amazonaws.com/kanimarker/doc/class/Kanimarker.html">https://s3-ap-northeast-1.amazonaws.com/kanimarker/doc/class/Kanimarker.html</a></p><h2 id="endpoint">Endpoint</h2><p><a href="https://s3-ap-northeast-1.amazonaws.com/kanimarker/kanimarker.js">https://s3-ap-northeast-1.amazonaws.com/kanimarker/kanimarker.js</a></p><h2 id="licence">Licence</h2><p>This software is released under the MIT License, see <a href="http://opensource.org/licenses/mit-license.php">http://opensource.org/licenses/mit-license.php</a>
-Copyright (C) 2015 CALIL Inc.</p>
+<h2 id="examples">Examples</h2>
+<ul>
+<li><a href="https://s3-ap-northeast-1.amazonaws.com/kanimarker/demo.html">Full control demo</a></li>
+</ul>
+<h2 id="document">Document</h2>
+<ul>
+<li><a href="https://s3-ap-northeast-1.amazonaws.com/kanimarker/doc/class/Kanimarker.html">Kanimarker Class</a></li>
+</ul>
+<h2 id="-cdn-https-s3-ap-northeast-1-amazonaws-com-kanimarker-kanimarker-js-"><a href="https://s3-ap-northeast-1.amazonaws.com/kanimarker/kanimarker.js">CDN</a></h2>
+<h2 id="license">License</h2><p>This software is released under the MIT License.</p><p>Copyright (C) 2015 CALIL Inc.</p><p>Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the &quot;Software&quot;), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:</p><p>The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.</p><p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.</p>
       </div>
     </div>
     <div id='footer'>
-  August 26, 15 16:04:43 by
+  October 21, 15 15:41:37 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
