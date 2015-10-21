@@ -5,11 +5,40 @@
 
 Position Marker for OpenLayers3
 
-## Compile
+## Hot to use
 
-```bash
-npm update
-gulp
+```javascript
+    var map;
+    map = new ol.Map({
+        layers: [new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: 'http://api.tiles.mapbox.com/v4/caliljp.ihofg5ie/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY2FsaWxqcCIsImEiOiJxZmNyWmdFIn0.hgdNoXE7D6i7SrEo6niG0w',
+                maxZoom: 20
+            })
+        })],
+        target: 'map',
+        maxZoom: 26,
+        minZoom: 18,
+        logo: false,
+        view: new ol.View({
+            center: ol.proj.transform([137.528032, 35.573162], 'EPSG:4326', 'EPSG:3857'),
+            zoom: 18
+        })
+    });
+
+    kanimarker = new Kanimarker(map);
+
+    function headingup_callback(isHeading) {
+        console.log('headingup_callback:' + isHeading)
+        if (isHeading == true) {
+            document.getElementById("mhead").style.backgroundColor = "#ff5555";
+        } else {
+            document.getElementById("mhead").style.backgroundColor = "";
+        }
+    }
+    kanimarker.on('change:headingup', headingup_callback);
+
+    kanimarker.setPosition(ol.proj.transform([137.528032,35.573162], 'EPSG:4326', 'EPSG:3857'),50);
 ```
 
 ## Demo
