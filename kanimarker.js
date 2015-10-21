@@ -113,21 +113,17 @@ Kanimarker = (function() {
         animate: function(frameStateTime) {
           var time;
           time = (frameStateTime - this.start) / this.duration;
-          if (time <= 1) {
-            if (this.duration > 8000) {
-              this.current[0] = this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.linear(time));
-              this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.linear(time));
-            } else if (this.duration > 2000) {
-              this.current[0] = this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.inAndOut(time));
-              this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.inAndOut(time));
-            } else {
-              this.current[0] = this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.easeOut(time));
-              this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.easeOut(time));
-            }
-            return true;
+          if (this.duration > 8000) {
+            this.current[0] = this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.linear(time));
+            this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.linear(time));
+          } else if (this.duration > 2000) {
+            this.current[0] = this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.inAndOut(time));
+            this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.inAndOut(time));
           } else {
-            return false;
+            this.current[0] = this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.easeOut(time));
+            this.current[1] = this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.easeOut(time));
           }
+          return time <= 1;
         }
       };
     }
@@ -207,33 +203,24 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.setDirection = function(newDirection, silent) {
-    var n, virtualDirection;
+    var rotation;
     if (silent == null) {
       silent = false;
     }
     if (newDirection === void 0 || this.direction === newDirection) {
       return;
     }
-    if (newDirection > this.direction) {
-      n = newDirection - this.direction;
-      if (n <= 180) {
-        virtualDirection = this.direction + n;
-      } else {
-        virtualDirection = this.direction - (360 - n);
-      }
-    } else {
-      n = this.direction - newDirection;
-      if (n <= 180) {
-        virtualDirection = this.direction - n;
-      } else {
-        virtualDirection = this.direction + (360 - n);
-      }
+    rotation = this.direction;
+    while (rotation < -180) {
+      rotation += 360;
+    }
+    while (rotation > 180) {
+      rotation -= 360;
     }
     this.directionAnimationState_ = {
       start: new Date(),
-      from: this.direction,
-      current: this.direction,
-      to: virtualDirection,
+      from: rotation,
+      to: newDirection,
       animate: function(frameStateTime) {
         var time;
         time = (frameStateTime - this.start) / 500;
@@ -243,9 +230,8 @@ Kanimarker = (function() {
     };
     this.direction = newDirection;
     if (this.mode === 'headingup') {
-      this.map.getView().setRotation(-(newDirection / 180 * Math.PI));
-    }
-    if (!silent) {
+      return this.map.getView().setRotation(-(newDirection / 180 * Math.PI));
+    } else if (!silent) {
       return this.map.render();
     }
   };
@@ -339,16 +325,19 @@ Kanimarker = (function() {
       context.restore();
     }
     if (this.debug_) {
-      debugText = JSON.stringify({
-        '現在地': kanimarker.position,
-        '方向': kanimarker.direction,
-        '計測精度': kanimarker.accuracy,
-        'モード': kanimarker.mode,
-        '移動': (kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
-        '回転': (kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
-        '計測精度': (kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし',
-        'フェードイン・アウト': (kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'
-      }, null, 2);
+      debugText = 'Position:' + kanimarker.position + ' Heading:' + kanimarker.direction + ' Accuracy:' + kanimarker.accuracy + ' Mode:' + kanimarker.mode;
+      if (kanimarker.moveAnimationState_ != null) {
+        debugText += ' [Move]';
+      }
+      if (kanimarker.directionAnimationState_ != null) {
+        debugText += ' [Rotate]';
+      }
+      if (kanimarker.accuracyAnimationState_ != null) {
+        debugText += ' [Accuracy]';
+      }
+      if (kanimarker.fadeInOutAnimationState_ != null) {
+        debugText += ' [Fadein/Out]';
+      }
       context.save();
       context.fillStyle = "rgba(255, 255, 255, 0.6)";
       context.fillRect(0, context.canvas.height - 20, context.canvas.width, 20);

@@ -29,14 +29,8 @@ class Kanimarker
 
   # @nodoc アニメーション用の内部ステート
   moveAnimationState_: null
-
-  # @nodoc アニメーション用の内部ステート
   directionAnimationState_: null
-
-  # @nodoc アニメーション用の内部ステート
   accuracyAnimationState_: null
-
-  # @nodoc アニメーション用の内部ステート
   fadeInOutAnimationState_: null
 
   # @nodoc デバッグ表示の有無(内部ステート)
@@ -135,19 +129,16 @@ class Kanimarker
         duration: @moveDuration
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / @duration
-          if time <= 1
-            if @duration > 8000
-              @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.linear(time))
-              @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.linear(time))
-            else if @duration > 2000
-              @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.inAndOut(time))
-              @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.inAndOut(time))
-            else
-              @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time))
-              @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))
-            return true
+          if @duration > 8000
+            @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.linear(time))
+            @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.linear(time))
+          else if @duration > 2000
+            @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.inAndOut(time))
+            @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.inAndOut(time))
           else
-            return false
+            @current[0] = @from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time))
+            @current[1] = @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))
+          return time <= 1
 
     # フェードイン
     if not fromPosition? and toPosition?
@@ -216,27 +207,17 @@ class Kanimarker
   setDirection: (newDirection, silent = false)->
     if newDirection is undefined or @direction == newDirection
       return
-    # アニメーションのための仮想的な角度を計算
-    # 左回りの場合はマイナスの値をとる場合がある
-    if newDirection > @direction
-      n = newDirection - @direction
-      if n <= 180
-        virtualDirection = @direction + n # 右回り n度回る
-      else
-        virtualDirection = @direction - (360 - n) # 左回り 360 - n度回る
-    else
-      n = @direction - newDirection
-      if n <= 180
-        virtualDirection = @direction - n # 左回り n度回る
-      else
-        virtualDirection = @direction + (360 - n) # 右回り 360 - n度回る
+
+    rotation = @direction
+    while rotation < -180
+      rotation += 360
+    while rotation > 180
+      rotation -= 360
 
     @directionAnimationState_ =
       start: new Date()
-      from: @direction
-      current: @direction
-      to: virtualDirection
-
+      from: rotation
+      to: newDirection
       animate: (frameStateTime)->
         time = (frameStateTime - @start) / 500
         @current = @from + ((@to - @from) * ol.easing.easeOut(time))
@@ -244,11 +225,9 @@ class Kanimarker
 
     @direction = newDirection
 
-    # 追従モードの場合は先にセットする
-    if @mode is 'headingup'
+    if @mode is 'headingup' # 追従モードの場合は先にセットする
       @map.getView().setRotation(-(newDirection / 180 * Math.PI))
-
-    if not silent
+    else if not silent
       @map.render()
 
   # @nodoc マップ描画処理
@@ -351,21 +330,17 @@ class Kanimarker
       context.strokeStyle = "rgba(255, 255, 255, #{opacity})"
       context.lineWidth = 3
       context.fill()
-      #context.stroke()
-
       context.restore() #キャンバスのステートを復帰(必ず実行すること)
 
     if @debug_
-      debugText = JSON.stringify(
-        '現在地': kanimarker.position
-        '方向': kanimarker.direction
-        '計測精度': kanimarker.accuracy
-        'モード': kanimarker.mode
-        '移動': `(kanimarker.moveAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-        '回転': `(kanimarker.directionAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-        '計測精度': `(kanimarker.accuracyAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-        'フェードイン・アウト': `(kanimarker.fadeInOutAnimationState_ != null) ? 'アニメーション中' : 'アニメーションなし'`
-      , null, 2)
+      debugText = ('Position:' + kanimarker.position +
+        ' Heading:' + kanimarker.direction +
+        ' Accuracy:' + kanimarker.accuracy +
+        ' Mode:' + kanimarker.mode )
+      if kanimarker.moveAnimationState_? then debugText+=' [Move]'
+      if kanimarker.directionAnimationState_? then debugText+=' [Rotate]'
+      if kanimarker.accuracyAnimationState_? then debugText+=' [Accuracy]'
+      if kanimarker.fadeInOutAnimationState_? then debugText+=' [Fadein/Out]'
       context.save()
       context.fillStyle = "rgba(255, 255, 255, 0.6)"
       context.fillRect(0, context.canvas.height - 20, context.canvas.width, 20)
