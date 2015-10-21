@@ -28,7 +28,7 @@ class Kanimarker
   accuracy: 0
 
   # @nodoc アニメーション用の内部ステート
-  animations : {}
+  animations: {}
 
   # @nodoc デバッグ表示の有無(内部ステート)
   debug_: false
@@ -59,16 +59,17 @@ class Kanimarker
 
   # デバッグ表示の有無を設定する
   #
-  # @param newValue {Boolean}
+  # @param value {Boolean}
   #
-  showDebugInformation: (newValue)->
-    @debug_ = newValue
+  setDebug: (value)->
+    @debug_ = value
     @map.render()
 
   # 表示モードの設定をする
   #
   # @param mode {String} normal/centered/headingup
   # @return {Boolean} 切り替えが成功したか
+  #
   setMode: (mode)->
     if mode isnt 'normal' and mode isnt 'centered' and mode isnt 'headingup'
       throw 'invalid mode'
@@ -78,7 +79,6 @@ class Kanimarker
       if @direction is null and mode == 'headingup'
         return false
       @mode = mode
-      #@cancelAnimation()
       if @position isnt null
         @map.getView().setCenter(@position.slice())
       if mode == 'headingup'
@@ -140,7 +140,7 @@ class Kanimarker
         start: new Date()
         from: 0
         to: 1
-        animationPosition: toPosition
+        position: toPosition
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / 500
           @current = @from + ((@to - @from) * ((x)-> x)(time))
@@ -155,7 +155,7 @@ class Kanimarker
         start: new Date()
         from: 1
         to: 0
-        animationPosition: fromPosition
+        position: fromPosition
         animate: (frameStateTime)->
           time = (frameStateTime - @start) / 500
           @current = @from + ((@to - @from) * ((x)-> x)(time))
@@ -228,13 +228,12 @@ class Kanimarker
     frameState = event.frameState
     pixelRatio = frameState.pixelRatio
 
-    # アニメーションしてない時の値
+    # default value
     opacity = 1
     position = @position
     accuracy = @accuracy
     direction = @direction
 
-    # 位置アニメーション
     if @animations.move?
       if @animations.move.animate(frameState.time)
         position = @animations.move.current
@@ -242,16 +241,14 @@ class Kanimarker
       else
         @animations.move = null
 
-    # フェードインアウトアニメーション
     if @animations.fade?
       if @animations.fade.animate(frameState.time)
         opacity = @animations.fade.current
-        position = @animations.fade.animationPosition
+        position = @animations.fade.position
         frameState.animate = true
       else
         @animations.fade = null
 
-    # 回転アニメーション
     if @animations.heading?
       if @animations.heading.animate(frameState.time)
         direction = @animations.heading.current
@@ -259,7 +256,6 @@ class Kanimarker
       else
         @animations.heading = null
 
-    # 円アニメーション
     if @animations.accuracy?
       if @animations.accuracy.animate(frameState.time)
         accuracy = @animations.accuracy.current
@@ -328,10 +324,10 @@ class Kanimarker
         ' Heading:' + @direction +
         ' Accuracy:' + @accuracy +
         ' Mode:' + @mode )
-      if @animations.move? then txt+=' [Move]'
-      if @animations.heading? then txt+=' [Rotate]'
-      if @animations.accuracy? then txt+=' [Accuracy]'
-      if @animations.fade? then txt+=' [Fadein/Out]'
+      if @animations.move? then txt += ' [Move]'
+      if @animations.heading? then txt += ' [Rotate]'
+      if @animations.accuracy? then txt += ' [Accuracy]'
+      if @animations.fade? then txt += ' [Fadein/Out]'
       context.save()
       context.fillStyle = "rgba(255, 255, 255, 0.6)"
       context.fillRect(0, context.canvas.height - 20, context.canvas.width, 20)

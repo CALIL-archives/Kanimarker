@@ -41,8 +41,8 @@ Kanimarker = (function() {
     return this.animations = {};
   };
 
-  Kanimarker.prototype.showDebugInformation = function(newValue) {
-    this.debug_ = newValue;
+  Kanimarker.prototype.setDebug = function(value) {
+    this.debug_ = value;
     return this.map.render();
   };
 
@@ -122,7 +122,7 @@ Kanimarker = (function() {
         start: new Date(),
         from: 0,
         to: 1,
-        animationPosition: toPosition,
+        position: toPosition,
         animate: function(frameStateTime) {
           var time;
           time = (frameStateTime - this.start) / 500;
@@ -142,7 +142,7 @@ Kanimarker = (function() {
         start: new Date(),
         from: 1,
         to: 0,
-        animationPosition: fromPosition,
+        position: fromPosition,
         animate: function(frameStateTime) {
           var time;
           time = (frameStateTime - this.start) / 500;
@@ -244,7 +244,7 @@ Kanimarker = (function() {
     if (this.animations.fade != null) {
       if (this.animations.fade.animate(frameState.time)) {
         opacity = this.animations.fade.current;
-        position = this.animations.fade.animationPosition;
+        position = this.animations.fade.position;
         frameState.animate = true;
       } else {
         this.animations.fade = null;
