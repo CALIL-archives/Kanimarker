@@ -46,27 +46,27 @@ Kanimarker = (function() {
     return this.map.render();
   };
 
-  Kanimarker.prototype.setMode = function(newMode) {
-    if (newMode !== 'normal' && newMode !== 'centered' && newMode !== 'headingup') {
+  Kanimarker.prototype.setMode = function(mode) {
+    if (mode !== 'normal' && mode !== 'centered' && mode !== 'headingup') {
       throw 'invalid mode';
     }
-    if (this.mode !== newMode) {
-      if (this.position === null && (newMode === 'centered' || newMode === 'headingup')) {
+    if (this.mode !== mode) {
+      if (this.position === null && (mode === 'centered' || mode === 'headingup')) {
         return false;
       }
-      if (this.direction === null && newMode === 'headingup') {
+      if (this.direction === null && mode === 'headingup') {
         return false;
       }
-      this.mode = newMode;
+      this.mode = mode;
       if (this.position !== null) {
         this.map.getView().setCenter(this.position.slice());
       }
-      if (newMode === 'headingup') {
+      if (mode === 'headingup') {
         this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
       } else {
         this.map.render();
       }
-      this.dispatch('change:mode', newMode);
+      this.dispatch('change:mode', this.mode);
       return true;
     }
   };
@@ -98,7 +98,6 @@ Kanimarker = (function() {
       this.animations.move = {
         start: new Date(),
         from: fromPosition.slice(),
-        current: fromPosition.slice(),
         to: toPosition.slice(),
         duration: this.moveDuration,
         animate: function(frameStateTime) {
@@ -122,7 +121,6 @@ Kanimarker = (function() {
       this.animations.fade = {
         start: new Date(),
         from: 0,
-        current: 0,
         to: 1,
         animationPosition: toPosition,
         animate: function(frameStateTime) {
@@ -143,7 +141,6 @@ Kanimarker = (function() {
       this.animations.fade = {
         start: new Date(),
         from: 1,
-        current: 1,
         to: 0,
         animationPosition: fromPosition,
         animate: function(frameStateTime) {
@@ -169,7 +166,7 @@ Kanimarker = (function() {
     if (this.accuracy === accuracy) {
       return;
     }
-    if (this.animations.accuracy != null) {
+    if ((this.animations.accuracy != null) && this.animations.accuracy.animate()) {
       from = this.animations.accuracy.current;
     } else {
       from = this.accuracy;
@@ -179,7 +176,6 @@ Kanimarker = (function() {
       start: new Date(),
       from: from,
       to: accuracy,
-      current: from,
       duration: this.accuracyDuration,
       animate: function(frameStateTime) {
         var time;
@@ -193,25 +189,25 @@ Kanimarker = (function() {
     }
   };
 
-  Kanimarker.prototype.setDirection = function(newDirection, silent) {
-    var rotation;
+  Kanimarker.prototype.setDirection = function(direction, silent) {
+    var from;
     if (silent == null) {
       silent = false;
     }
-    if (newDirection === void 0 || this.direction === newDirection) {
+    if (direction === void 0 || this.direction === direction) {
       return;
     }
-    rotation = this.direction;
-    while (rotation < -180) {
-      rotation += 360;
+    from = this.direction;
+    while (from < -180) {
+      from += 360;
     }
-    while (rotation > 180) {
-      rotation -= 360;
+    while (from > 180) {
+      from -= 360;
     }
     this.animations.heading = {
       start: new Date(),
-      from: rotation,
-      to: newDirection,
+      from: from,
+      to: direction,
       animate: function(frameStateTime) {
         var time;
         time = (frameStateTime - this.start) / 500;
@@ -219,16 +215,16 @@ Kanimarker = (function() {
         return time <= 1;
       }
     };
-    this.direction = newDirection;
+    this.direction = direction;
     if (this.mode === 'headingup') {
-      return this.map.getView().setRotation(-(newDirection / 180 * Math.PI));
+      return this.map.getView().setRotation(-(this.direction / 180 * Math.PI));
     } else if (!silent) {
       return this.map.render();
     }
   };
 
   Kanimarker.prototype.postcompose_ = function(event) {
-    var accuracy, circleStyle, context, debugText, direction, frameState, iconStyle, opacity, pixel, pixelRatio, position, vectorContext;
+    var accuracy, circleStyle, context, direction, frameState, iconStyle, opacity, pixel, pixelRatio, position, txt, vectorContext;
     context = event.context;
     vectorContext = event.vectorContext;
     frameState = event.frameState;
@@ -316,25 +312,25 @@ Kanimarker = (function() {
       context.restore();
     }
     if (this.debug_) {
-      debugText = 'Position:' + this.position + ' Heading:' + this.direction + ' Accuracy:' + this.accuracy + ' Mode:' + this.mode;
+      txt = 'Position:' + this.position + ' Heading:' + this.direction + ' Accuracy:' + this.accuracy + ' Mode:' + this.mode;
       if (this.animations.move != null) {
-        debugText += ' [Move]';
+        txt += ' [Move]';
       }
       if (this.animations.heading != null) {
-        debugText += ' [Rotate]';
+        txt += ' [Rotate]';
       }
       if (this.animations.accuracy != null) {
-        debugText += ' [Accuracy]';
+        txt += ' [Accuracy]';
       }
       if (this.animations.fade != null) {
-        debugText += ' [Fadein/Out]';
+        txt += ' [Fadein/Out]';
       }
       context.save();
       context.fillStyle = "rgba(255, 255, 255, 0.6)";
       context.fillRect(0, context.canvas.height - 20, context.canvas.width, 20);
       context.font = "10px";
       context.fillStyle = "black";
-      context.fillText(debugText, 10, context.canvas.height - 7);
+      context.fillText(txt, 10, context.canvas.height - 7);
       return context.restore();
     }
   };

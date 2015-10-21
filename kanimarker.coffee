@@ -67,25 +67,25 @@ class Kanimarker
 
   # 表示モードの設定をする
   #
-  # @param newMode {String} normal/centered/headingup
+  # @param mode {String} normal/centered/headingup
   # @return {Boolean} 切り替えが成功したか
-  setMode: (newMode)->
-    if newMode isnt 'normal' and newMode isnt 'centered' and newMode isnt 'headingup'
+  setMode: (mode)->
+    if mode isnt 'normal' and mode isnt 'centered' and mode isnt 'headingup'
       throw 'invalid mode'
-    if @mode != newMode
-      if @position is null and (newMode == 'centered' or newMode == 'headingup')
+    if @mode != mode
+      if @position is null and (mode == 'centered' or mode == 'headingup')
         return false
-      if @direction is null and newMode == 'headingup'
+      if @direction is null and mode == 'headingup'
         return false
-      @mode = newMode
+      @mode = mode
       #@cancelAnimation()
       if @position isnt null
         @map.getView().setCenter(@position.slice())
-      if newMode == 'headingup'
+      if mode == 'headingup'
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
       else
         @map.render()
-      @dispatch('change:mode', newMode)
+      @dispatch('change:mode', @mode)
       return true
 
   # 現在地を設定する
@@ -119,7 +119,6 @@ class Kanimarker
       @animations.move =
         start: new Date()
         from: fromPosition.slice()
-        current: fromPosition.slice()
         to: toPosition.slice()
         duration: @moveDuration
         animate: (frameStateTime)->
@@ -140,7 +139,6 @@ class Kanimarker
       @animations.fade =
         start: new Date()
         from: 0
-        current: 0
         to: 1
         animationPosition: toPosition
         animate: (frameStateTime)->
@@ -156,7 +154,6 @@ class Kanimarker
       @animations.fade =
         start: new Date()
         from: 1
-        current: 1
         to: 0
         animationPosition: fromPosition
         animate: (frameStateTime)->
@@ -176,7 +173,7 @@ class Kanimarker
     if @accuracy is accuracy
       return
     # アニメーション中の場合は中間値からスタート
-    if @animations.accuracy?
+    if @animations.accuracy? and @animations.accuracy.animate()
       from = @animations.accuracy.current
     else
       from = @accuracy
@@ -185,7 +182,6 @@ class Kanimarker
       start: new Date()
       from: from
       to: accuracy
-      current: from
       duration: @accuracyDuration
       animate: (frameStateTime)->
         time = (frameStateTime - @start) / @duration
@@ -199,29 +195,29 @@ class Kanimarker
   # @param newDirection {Number} 真北からの角度
   # @param silent {Boolean} 再描画抑制フラグ
   #
-  setDirection: (newDirection, silent = false)->
-    if newDirection is undefined or @direction == newDirection
+  setDirection: (direction, silent = false)->
+    if direction is undefined or @direction is direction
       return
 
-    rotation = @direction
-    while rotation < -180
-      rotation += 360
-    while rotation > 180
-      rotation -= 360
+    from = @direction
+    while from < -180
+      from += 360
+    while from > 180
+      from -= 360
 
     @animations.heading =
       start: new Date()
-      from: rotation
-      to: newDirection
+      from: from
+      to: direction
       animate: (frameStateTime)->
         time = (frameStateTime - @start) / 500
         @current = @from + ((@to - @from) * ol.easing.easeOut(time))
         return time <= 1
 
-    @direction = newDirection
+    @direction = direction
 
     if @mode is 'headingup' # 追従モードの場合は先にセットする
-      @map.getView().setRotation(-(newDirection / 180 * Math.PI))
+      @map.getView().setRotation(-(@direction / 180 * Math.PI))
     else if not silent
       @map.render()
 
@@ -328,20 +324,20 @@ class Kanimarker
       context.restore() #キャンバスのステートを復帰(必ず実行すること)
 
     if @debug_
-      debugText = ('Position:' + @position +
+      txt = ('Position:' + @position +
         ' Heading:' + @direction +
         ' Accuracy:' + @accuracy +
         ' Mode:' + @mode )
-      if @animations.move? then debugText+=' [Move]'
-      if @animations.heading? then debugText+=' [Rotate]'
-      if @animations.accuracy? then debugText+=' [Accuracy]'
-      if @animations.fade? then debugText+=' [Fadein/Out]'
+      if @animations.move? then txt+=' [Move]'
+      if @animations.heading? then txt+=' [Rotate]'
+      if @animations.accuracy? then txt+=' [Accuracy]'
+      if @animations.fade? then txt+=' [Fadein/Out]'
       context.save()
       context.fillStyle = "rgba(255, 255, 255, 0.6)"
       context.fillRect(0, context.canvas.height - 20, context.canvas.width, 20)
       context.font = "10px"
       context.fillStyle = "black"
-      context.fillText(debugText, 10, context.canvas.height - 7)
+      context.fillText(txt, 10, context.canvas.height - 7)
       context.restore()
 
   # @nodoc マップ描画前の処理
