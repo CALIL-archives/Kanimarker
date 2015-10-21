@@ -8,8 +8,7 @@ Position Marker for OpenLayers3
 ## Hot to use
 
 ```javascript
-var map;
-map = new ol.Map({ ... });
+var map = new ol.Map({ ... });
 kanimarker = new Kanimarker(map);
 kanimarker.setPosition([137.528032,35.573162],50);
 ```
