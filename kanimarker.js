@@ -47,7 +47,7 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.setMode = function(mode) {
-    var animated, from, froms, to;
+    var animated, d, diff, from, froms, to;
     if (mode !== 'normal' && mode !== 'centered' && mode !== 'headingup') {
       throw 'invalid mode';
     }
@@ -61,28 +61,38 @@ Kanimarker = (function() {
       this.mode = mode;
       if (this.position !== null && mode !== 'normal') {
         animated = false;
-        from = this.map.getView().getRotation() * 180 / Math.PI;
-        while (from < -180) {
-          from += 360;
-        }
-        while (from > 180) {
-          from -= 360;
-        }
-        to = -this.direction;
-        if (from - to !== 0) {
-          animated = true;
-          this.animations.rotationMode = {
-            start: new Date(),
-            from: from - to,
-            to: 0,
-            duration: 800,
-            animate: function(frameStateTime) {
-              var time;
-              time = (frameStateTime - this.start) / this.duration;
-              this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
-              return time <= 1;
-            }
-          };
+        if (mode === 'headingup') {
+          from = this.map.getView().getRotation() * 180 / Math.PI;
+          while (from < -180) {
+            from += 360;
+          }
+          while (from > 180) {
+            from -= 360;
+          }
+          to = -this.direction;
+          diff = Math.abs(from - to);
+          if (diff > 100) {
+            d = 800;
+          } else if (diff > 60) {
+            d = 400;
+          } else {
+            d = 300;
+          }
+          if (from - to !== 0) {
+            animated = true;
+            this.animations.rotationMode = {
+              start: new Date(),
+              from: from - to,
+              to: 0,
+              duration: d,
+              animate: function(frameStateTime) {
+                var time;
+                time = (frameStateTime - this.start) / this.duration;
+                this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
+                return time <= 1;
+              }
+            };
+          }
         }
         if (!animated) {
           from = this.map.getView().getCenter();

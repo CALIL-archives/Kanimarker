@@ -81,23 +81,31 @@ class Kanimarker
       @mode = mode
       if @position isnt null and mode isnt 'normal'
         animated = false
-        from = @map.getView().getRotation() * 180 / Math.PI
-        while from < -180
-          from += 360
-        while from > 180
-          from -= 360
-        to = -@direction
-        if from - to != 0
-          animated=true
-          @animations.rotationMode =
-            start: new Date()
-            from: from - to
-            to: 0
-            duration: 800
-            animate: (frameStateTime)->
-              time = (frameStateTime - @start) / @duration
-              @current = @from + ((@to - @from) * ol.easing.easeOut(time))
-              return time <= 1
+        if mode is 'headingup'
+          from = @map.getView().getRotation() * 180 / Math.PI
+          while from < -180
+            from += 360
+          while from > 180
+            from -= 360
+          to = -@direction
+          diff = Math.abs(from - to)
+          if diff > 100
+            d = 800
+          else if diff > 60
+            d = 400
+          else
+            d = 300
+          if from - to != 0
+            animated = true
+            @animations.rotationMode =
+              start: new Date()
+              from: from - to
+              to: 0
+              duration: d
+              animate: (frameStateTime)->
+                time = (frameStateTime - @start) / @duration
+                @current = @from + ((@to - @from) * ol.easing.easeOut(time))
+                return time <= 1
         if not animated
           from = @map.getView().getCenter()
           to = @position
@@ -405,11 +413,11 @@ class Kanimarker
         diff = 0
         if @animations.rotationMode?
           if @animations.rotationMode.animate(frameState.time)
-            diff= @animations.rotationMode.current
+            diff = @animations.rotationMode.current
             frameState.animate = true
           else
             @animations.rotationMode = null
-        frameState.viewState.rotation = -((direction-diff) / 180 * Math.PI)
+        frameState.viewState.rotation = -((direction - diff) / 180 * Math.PI)
 
   # @nodoc ドラッグイベントの処理
   pointerdrag_: ->
