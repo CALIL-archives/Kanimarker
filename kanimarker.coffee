@@ -80,17 +80,15 @@ class Kanimarker
         return false
       @mode = mode
       if @position isnt null and mode isnt 'normal'
-        # 角度が変化する場合はアニメーションを開始
+        animated = false
         from = @map.getView().getRotation() * 180 / Math.PI
         while from < -180
           from += 360
         while from > 180
           from -= 360
         to = -@direction
-        console.log from
-        console.log to
-        console.log (from - to)
         if from - to != 0
+          animated=true
           @animations.rotationMode =
             start: new Date()
             from: from - to
@@ -100,7 +98,7 @@ class Kanimarker
               time = (frameStateTime - @start) / @duration
               @current = @from + ((@to - @from) * ol.easing.easeOut(time))
               return time <= 1
-        else
+        if not animated
           from = @map.getView().getCenter()
           to = @position
           if from[0] - to[0] != 0 or from[1] - to[1] != 0

@@ -47,7 +47,7 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.setMode = function(mode) {
-    var from, froms, to;
+    var animated, from, froms, to;
     if (mode !== 'normal' && mode !== 'centered' && mode !== 'headingup') {
       throw 'invalid mode';
     }
@@ -60,6 +60,7 @@ Kanimarker = (function() {
       }
       this.mode = mode;
       if (this.position !== null && mode !== 'normal') {
+        animated = false;
         from = this.map.getView().getRotation() * 180 / Math.PI;
         while (from < -180) {
           from += 360;
@@ -68,10 +69,8 @@ Kanimarker = (function() {
           from -= 360;
         }
         to = -this.direction;
-        console.log(from);
-        console.log(to);
-        console.log(from - to);
         if (from - to !== 0) {
+          animated = true;
           this.animations.rotationMode = {
             start: new Date(),
             from: from - to,
@@ -84,7 +83,8 @@ Kanimarker = (function() {
               return time <= 1;
             }
           };
-        } else {
+        }
+        if (!animated) {
           from = this.map.getView().getCenter();
           to = this.position;
           if (from[0] - to[0] !== 0 || from[1] - to[1] !== 0) {
