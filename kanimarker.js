@@ -60,25 +60,51 @@ Kanimarker = (function() {
       }
       this.mode = mode;
       if (this.position !== null && mode !== 'normal') {
-        from = this.map.getView().getCenter();
-        to = this.position;
-        if (from[0] - to[0] !== 0 || from[1] - to[1] !== 0) {
-          froms = [from[0] - to[0], from[1] - to[1]];
-          if ((this.animations.moveMode != null) && this.animations.animate()) {
-            froms = [animations.current[0], animations.current[1]];
-          }
-          this.animations.moveMode = {
+        from = this.map.getView().getRotation() * 180 / Math.PI;
+        while (from < -180) {
+          from += 360;
+        }
+        while (from > 180) {
+          from -= 360;
+        }
+        to = -this.direction;
+        console.log(from);
+        console.log(to);
+        console.log(from - to);
+        if (from - to !== 0) {
+          this.animations.rotationMode = {
             start: new Date(),
-            from: froms,
-            to: [0, 0],
+            from: from - to,
+            to: 0,
             duration: 800,
             animate: function(frameStateTime) {
               var time;
               time = (frameStateTime - this.start) / this.duration;
-              this.current = [this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.easeOut(time)), this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.easeOut(time))];
+              this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
               return time <= 1;
             }
           };
+        } else {
+          from = this.map.getView().getCenter();
+          to = this.position;
+          if (from[0] - to[0] !== 0 || from[1] - to[1] !== 0) {
+            froms = [from[0] - to[0], from[1] - to[1]];
+            if ((this.animations.moveMode != null) && this.animations.moveMode.animate()) {
+              froms = [animations.current[0], animations.moveMode.current[1]];
+            }
+            this.animations.moveMode = {
+              start: new Date(),
+              from: froms,
+              to: [0, 0],
+              duration: 800,
+              animate: function(frameStateTime) {
+                var time;
+                time = (frameStateTime - this.start) / this.duration;
+                this.current = [this.from[0] + ((this.to[0] - this.from[0]) * ol.easing.easeOut(time)), this.from[1] + ((this.to[1] - this.from[1]) * ol.easing.easeOut(time))];
+                return time <= 1;
+              }
+            };
+          }
         }
         this.map.getView().setCenter(this.position);
       }
@@ -208,7 +234,7 @@ Kanimarker = (function() {
     }
   };
 
-  Kanimarker.prototype.setDirection = function(direction, silent) {
+  Kanimarker.prototype.setHeading = function(direction, silent) {
     var from;
     if (silent == null) {
       silent = false;
@@ -369,7 +395,7 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.precompose_ = function(event) {
-    var direction, frameState, position;
+    var diff, direction, frameState, position;
     if (this.position !== null && this.mode !== 'normal') {
       frameState = event.frameState;
       position = this.position;
@@ -401,7 +427,16 @@ Kanimarker = (function() {
             this.animations.heading = null;
           }
         }
-        return frameState.viewState.rotation = -(direction / 180 * Math.PI);
+        diff = 0;
+        if (this.animations.rotationMode != null) {
+          if (this.animations.rotationMode.animate(frameState.time)) {
+            diff = this.animations.rotationMode.current;
+            frameState.animate = true;
+          } else {
+            this.animations.rotationMode = null;
+          }
+        }
+        return frameState.viewState.rotation = -((direction - diff) / 180 * Math.PI);
       }
     }
   };

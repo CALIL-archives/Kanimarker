@@ -80,23 +80,44 @@ class Kanimarker
         return false
       @mode = mode
       if @position isnt null and mode isnt 'normal'
-        # 中心に向けてアニメーションを開始
-        from = @map.getView().getCenter()
-        to = @position
-        if from[0] - to[0] != 0 or from[1] - to[1] != 0
-          froms = [from[0] - to[0], from[1] - to[1]]
-          if @animations.moveMode? and @animations.animate()
-            froms = [animations.current[0],animations.current[1]]
-          @animations.moveMode =
+        # 角度が変化する場合はアニメーションを開始
+        from = @map.getView().getRotation() * 180 / Math.PI
+        while from < -180
+          from += 360
+        while from > 180
+          from -= 360
+        to = -@direction
+        console.log from
+        console.log to
+        console.log (from - to)
+        if from - to != 0
+          @animations.rotationMode =
             start: new Date()
-            from: froms
-            to: [0, 0]
+            from: from - to
+            to: 0
             duration: 800
             animate: (frameStateTime)->
               time = (frameStateTime - @start) / @duration
-              @current = [@from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time)),
-                          @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))]
+              @current = @from + ((@to - @from) * ol.easing.easeOut(time))
               return time <= 1
+        else
+          from = @map.getView().getCenter()
+          to = @position
+          if from[0] - to[0] != 0 or from[1] - to[1] != 0
+            froms = [from[0] - to[0], from[1] - to[1]]
+            if @animations.moveMode? and @animations.moveMode.animate()
+              froms = [animations.current[0], animations.moveMode.current[1]]
+            @animations.moveMode =
+              start: new Date()
+              from: froms
+              to: [0, 0]
+              duration: 800
+              animate: (frameStateTime)->
+                time = (frameStateTime - @start) / @duration
+                @current = [@from[0] + ((@to[0] - @from[0]) * ol.easing.easeOut(time)),
+                            @from[1] + ((@to[1] - @from[1]) * ol.easing.easeOut(time))]
+                return time <= 1
+
         @map.getView().setCenter(@position)
       if mode == 'headingup'
         @map.getView().setRotation(-(@direction / 180 * Math.PI))
@@ -211,7 +232,7 @@ class Kanimarker
   # @param newDirection {Number} 真北からの角度
   # @param silent {Boolean} 再描画抑制フラグ
   #
-  setDirection: (direction, silent = false)->
+  setHeading: (direction, silent = false)->
     if direction is undefined or @direction is direction
       return
 
@@ -382,7 +403,15 @@ class Kanimarker
             direction = @animations.heading.current
           else
             @animations.heading = null
-        frameState.viewState.rotation = -(direction / 180 * Math.PI)
+
+        diff = 0
+        if @animations.rotationMode?
+          if @animations.rotationMode.animate(frameState.time)
+            diff= @animations.rotationMode.current
+            frameState.animate = true
+          else
+            @animations.rotationMode = null
+        frameState.viewState.rotation = -((direction-diff) / 180 * Math.PI)
 
   # @nodoc ドラッグイベントの処理
   pointerdrag_: ->

@@ -24,7 +24,7 @@ kanimarker.setPosition([137.528032,35.573162],50);
 
 ## Examples
 
-- [Full control demo](https://s3-ap-northeast-1.amazonaws.com/kanimarker/demo.html)
+- [Full control demo](https://s3-ap-northeast-1.amazonaws.com/kanimarker/examples/demo.html)
 
 ## Document
 
