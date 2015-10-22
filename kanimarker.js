@@ -80,6 +80,7 @@ Kanimarker = (function() {
           }
           if (from - to !== 0) {
             animated = true;
+            this.animations.moveMode = null;
             this.animations.rotationMode = {
               start: new Date(),
               from: from - to,
