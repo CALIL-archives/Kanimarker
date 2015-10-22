@@ -113,6 +113,7 @@ class Kanimarker
             froms = [from[0] - to[0], from[1] - to[1]]
             if @animations.moveMode? and @animations.moveMode.animate()
               froms = [animations.current[0], animations.moveMode.current[1]]
+            @animations.rotationMode = null
             @animations.moveMode =
               start: new Date()
               from: froms
