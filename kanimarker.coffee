@@ -48,9 +48,10 @@ class Kanimarker
   #
   constructor: (map)->
     @map = map
-    @map.on('postcompose', @postcompose_, this)
-    @map.on('precompose', @precompose_, this)
-    @map.on('pointerdrag', @pointerdrag_, this)
+    if @map?
+      @map.on('postcompose', @postcompose_, this)
+      @map.on('precompose', @precompose_, this)
+      @map.on('pointerdrag', @pointerdrag_, this)
 
   # 現在進行中のアニメーションをキャンセルする
   #
@@ -82,16 +83,16 @@ class Kanimarker
       if @position isnt null and mode isnt 'normal'
         animated = false
         if mode is 'headingup'
-          from = @map.getView().getRotation() * 180 / Math.PI*-1
-          while from < -180
-            from += 360
-          while from > 180
-            from -= 360
-          to = -@direction
-          diff = Math.abs(from - to)
-          if diff > 100
+          from = @map.getView().getRotation() * 180 / Math.PI % 360
+          to = -@direction % 360
+          diff = from - to
+          if diff < -180
+            diff = -360 - diff
+          if diff > 180
+            diff = diff - 360
+          if Math.abs(diff) > 100
             d = 800
-          else if diff > 60
+          else if Math.abs(diff) > 60
             d = 400
           else
             d = 300
@@ -100,9 +101,9 @@ class Kanimarker
             @animations.moveMode = null
             @animations.rotationMode =
               start: new Date()
-              from: from - to
+              from: diff
               to: 0
-              duration: 10000 #d
+              duration: d
               animate: (frameStateTime)->
                 time = (frameStateTime - @start) / @duration
                 @current = @from + ((@to - @from) * ol.easing.easeOut(time))
@@ -242,16 +243,14 @@ class Kanimarker
   setHeading: (direction, silent = false)->
     if direction is undefined or @direction is direction
       return
-
-    from = @direction
-    while from < -180
-      from += 360
-    while from > 180
-      from -= 360
-
+    diff = @direction - direction
+    if diff < -180
+      diff = -360 - diff
+    if diff > 180
+      diff = diff - 360
     @animations.heading =
       start: new Date()
-      from: from
+      from: direction + diff
       to: direction
       animate: (frameStateTime)->
         time = (frameStateTime - @start) / 500
@@ -374,7 +373,7 @@ class Kanimarker
       if @animations.heading? then txt += ' [Rotate]'
       if @animations.accuracy? then txt += ' [Accuracy]'
       if @animations.fade? then txt += ' [Fadein/Out]'
-      if @animations.rotationMode? then txt += ' [HeadingRotation]'+@animations.rotationMode.current
+      if @animations.rotationMode? then txt += ' [HeadingRotation]' + @animations.rotationMode.current
 
       context.save()
       context.fillStyle = "rgba(255, 255, 255, 0.6)"
@@ -442,4 +441,4 @@ class Kanimarker
     callback data for callback in chain if chain?
 
 if typeof exports isnt 'undefined'
-  module.exports =Kanimarker
+  module.exports = Kanimarker

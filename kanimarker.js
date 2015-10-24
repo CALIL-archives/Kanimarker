@@ -32,9 +32,11 @@ Kanimarker = (function() {
 
   function Kanimarker(map) {
     this.map = map;
-    this.map.on('postcompose', this.postcompose_, this);
-    this.map.on('precompose', this.precompose_, this);
-    this.map.on('pointerdrag', this.pointerdrag_, this);
+    if (this.map != null) {
+      this.map.on('postcompose', this.postcompose_, this);
+      this.map.on('precompose', this.precompose_, this);
+      this.map.on('pointerdrag', this.pointerdrag_, this);
+    }
   }
 
   Kanimarker.prototype.cancelAnimation = function() {
@@ -62,18 +64,18 @@ Kanimarker = (function() {
       if (this.position !== null && mode !== 'normal') {
         animated = false;
         if (mode === 'headingup') {
-          from = this.map.getView().getRotation() * 180 / Math.PI * -1;
-          while (from < -180) {
-            from += 360;
+          from = this.map.getView().getRotation() * 180 / Math.PI % 360;
+          to = -this.direction % 360;
+          diff = from - to;
+          if (diff < -180) {
+            diff = -360 - diff;
           }
-          while (from > 180) {
-            from -= 360;
+          if (diff > 180) {
+            diff = diff - 360;
           }
-          to = -this.direction;
-          diff = Math.abs(from - to);
-          if (diff > 100) {
+          if (Math.abs(diff) > 100) {
             d = 800;
-          } else if (diff > 60) {
+          } else if (Math.abs(diff) > 60) {
             d = 400;
           } else {
             d = 300;
@@ -83,9 +85,9 @@ Kanimarker = (function() {
             this.animations.moveMode = null;
             this.animations.rotationMode = {
               start: new Date(),
-              from: from - to,
+              from: diff,
               to: 0,
-              duration: 10000,
+              duration: d,
               animate: function(frameStateTime) {
                 var time;
                 time = (frameStateTime - this.start) / this.duration;
@@ -246,23 +248,23 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.setHeading = function(direction, silent) {
-    var from;
+    var diff;
     if (silent == null) {
       silent = false;
     }
     if (direction === void 0 || this.direction === direction) {
       return;
     }
-    from = this.direction;
-    while (from < -180) {
-      from += 360;
+    diff = this.direction - direction;
+    if (diff < -180) {
+      diff = -360 - diff;
     }
-    while (from > 180) {
-      from -= 360;
+    if (diff > 180) {
+      diff = diff - 360;
     }
     this.animations.heading = {
       start: new Date(),
-      from: from,
+      from: direction + diff,
       to: direction,
       animate: function(frameStateTime) {
         var time;
@@ -484,3 +486,7 @@ Kanimarker = (function() {
   return Kanimarker;
 
 })();
+
+if (typeof exports !== 'undefined') {
+  module.exports = Kanimarker;
+}
