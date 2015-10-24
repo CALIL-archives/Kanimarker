@@ -62,7 +62,7 @@ Kanimarker = (function() {
       if (this.position !== null && mode !== 'normal') {
         animated = false;
         if (mode === 'headingup') {
-          from = this.map.getView().getRotation() * 180 / Math.PI;
+          from = this.map.getView().getRotation() * 180 / Math.PI * -1;
           while (from < -180) {
             from += 360;
           }
@@ -85,7 +85,7 @@ Kanimarker = (function() {
               start: new Date(),
               from: from - to,
               to: 0,
-              duration: d,
+              duration: 10000,
               animate: function(frameStateTime) {
                 var time;
                 time = (frameStateTime - this.start) / this.duration;
@@ -394,6 +394,9 @@ Kanimarker = (function() {
       }
       if (this.animations.fade != null) {
         txt += ' [Fadein/Out]';
+      }
+      if (this.animations.rotationMode != null) {
+        txt += ' [HeadingRotation]' + this.animations.rotationMode.current;
       }
       context.save();
       context.fillStyle = "rgba(255, 255, 255, 0.6)";

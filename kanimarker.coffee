@@ -82,7 +82,7 @@ class Kanimarker
       if @position isnt null and mode isnt 'normal'
         animated = false
         if mode is 'headingup'
-          from = @map.getView().getRotation() * 180 / Math.PI
+          from = @map.getView().getRotation() * 180 / Math.PI*-1
           while from < -180
             from += 360
           while from > 180
@@ -102,7 +102,7 @@ class Kanimarker
               start: new Date()
               from: from - to
               to: 0
-              duration: d
+              duration: 10000 #d
               animate: (frameStateTime)->
                 time = (frameStateTime - @start) / @duration
                 @current = @from + ((@to - @from) * ol.easing.easeOut(time))
@@ -372,9 +372,10 @@ class Kanimarker
         ' Mode:' + @mode )
       if @animations.move? then txt += ' [Move]'
       if @animations.heading? then txt += ' [Rotate]'
-      ######
       if @animations.accuracy? then txt += ' [Accuracy]'
       if @animations.fade? then txt += ' [Fadein/Out]'
+      if @animations.rotationMode? then txt += ' [HeadingRotation]'+@animations.rotationMode.current
+
       context.save()
       context.fillStyle = "rgba(255, 255, 255, 0.6)"
       context.fillRect(0, context.canvas.height - 20, context.canvas.width, 20)
@@ -439,3 +440,6 @@ class Kanimarker
   dispatch: (type, data) ->
     chain = @callbacks[type]
     callback data for callback in chain if chain?
+
+if typeof exports isnt 'undefined'
+  module.exports =Kanimarker
