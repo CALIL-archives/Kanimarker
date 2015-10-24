@@ -166,7 +166,7 @@ Kanimarker = (function() {
           if (this.duration > 8000) {
             easing = ol.easing.linear(time);
           } else if (this.duration > 2000) {
-            easing = ool.easing.inAndOut(time);
+            easing = ol.easing.inAndOut(time);
           } else {
             easing = ol.easing.easeOut(time);
           }
@@ -282,7 +282,7 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.postcompose_ = function(event) {
-    var accuracy, circleStyle, context, direction, frameState, iconStyle, opacity, pixel, pixelRatio, position, txt, vectorContext;
+    var accuracy, accuracySize, circleStyle, context, direction, frameState, iconStyle, opacity, opacity_, pixel, pixelRatio, position, txt, vectorContext;
     context = event.context;
     vectorContext = event.vectorContext;
     frameState = event.frameState;
@@ -325,12 +325,17 @@ Kanimarker = (function() {
       }
     }
     if (position != null) {
-      if ((accuracy / frameState.viewState.resolution) * pixelRatio > 15) {
+      accuracySize = accuracy / frameState.viewState.resolution;
+      if (accuracySize > 3) {
+        opacity_ = 0.2 * opacity;
+        if (accuracySize < 30) {
+          opacity_ = opacity_ * (accuracySize / 30);
+        }
         circleStyle = new ol.style.Circle({
           snapToPixel: false,
-          radius: (accuracy / frameState.viewState.resolution) * pixelRatio,
+          radius: accuracySize * pixelRatio,
           fill: new ol.style.Fill({
-            color: "rgba(56, 149, 255, " + (0.2 * opacity) + ")"
+            color: "rgba(56, 149, 255, " + opacity_ + ")"
           })
         });
         vectorContext.setImageStyle(circleStyle);

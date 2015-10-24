@@ -172,7 +172,7 @@ class Kanimarker
           if @duration > 8000
             easing = ol.easing.linear(time)
           else if  @duration > 2000
-            easing = ool.easing.inAndOut(time)
+            easing = ol.easing.inAndOut(time)
           else
             easing = ol.easing.easeOut(time)
           @current = [@from[0] + ((@to[0] - @from[0]) * easing),
@@ -308,13 +308,16 @@ class Kanimarker
 
     # 非表示以外なら描画
     if position?
-      # 円
-      if (accuracy / frameState.viewState.resolution) * pixelRatio > 15
+      accuracySize = (accuracy / frameState.viewState.resolution)
+      if accuracySize > 3
+        opacity_ = 0.2 * opacity
+        if accuracySize < 30
+          opacity_ = opacity_ * (accuracySize / 30)
         circleStyle = new ol.style.Circle(
           snapToPixel: false
-          radius: (accuracy / frameState.viewState.resolution) * pixelRatio
+          radius: accuracySize * pixelRatio
           fill: new ol.style.Fill(
-            color: "rgba(56, 149, 255, #{0.2 * opacity})")
+            color: "rgba(56, 149, 255, #{opacity_})")
         )
         vectorContext.setImageStyle(circleStyle)
         vectorContext.drawPointGeometry(new ol.geom.Point(position), null)
