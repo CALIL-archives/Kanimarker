@@ -319,15 +319,15 @@ class Kanimarker
           opacity_ = opacity_ * (1-diff / (maxSize * 0.4))
           if opacity_<0
             opacity_=0
-
-        circleStyle = new ol.style.Circle(
-          snapToPixel: false
-          radius: accuracySize * pixelRatio
-          fill: new ol.style.Fill(
-            color: "rgba(56, 149, 255, #{opacity_})")
-        )
-        vectorContext.setImageStyle(circleStyle)
-        vectorContext.drawPointGeometry(new ol.geom.Point(position), null)
+        if opacity_>0
+          circleStyle = new ol.style.Circle(
+            snapToPixel: false
+            radius: accuracySize * pixelRatio
+            fill: new ol.style.Fill(
+              color: "rgba(56, 149, 255, #{opacity_})")
+          )
+          vectorContext.setImageStyle(circleStyle)
+          vectorContext.drawPointGeometry(new ol.geom.Point(position), null)
 
       # マーカーアイコン
       iconStyle = new ol.style.Circle(
