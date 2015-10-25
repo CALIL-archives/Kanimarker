@@ -82,7 +82,7 @@
     var geolocation = new ol.Geolocation(({
         projection: map.getView().getProjection(),
         trackingOptions: {
-            maximumAge: 10000,
+            maximumAge: 500,
             enableHighAccuracy: true,
             timeout: 600000
         }
