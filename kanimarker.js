@@ -339,15 +339,17 @@ Kanimarker = (function() {
             opacity_ = 0;
           }
         }
-        circleStyle = new ol.style.Circle({
-          snapToPixel: false,
-          radius: accuracySize * pixelRatio,
-          fill: new ol.style.Fill({
-            color: "rgba(56, 149, 255, " + opacity_ + ")"
-          })
-        });
-        vectorContext.setImageStyle(circleStyle);
-        vectorContext.drawPointGeometry(new ol.geom.Point(position), null);
+        if (opacity_ > 0) {
+          circleStyle = new ol.style.Circle({
+            snapToPixel: false,
+            radius: accuracySize * pixelRatio,
+            fill: new ol.style.Fill({
+              color: "rgba(56, 149, 255, " + opacity_ + ")"
+            })
+          });
+          vectorContext.setImageStyle(circleStyle);
+          vectorContext.drawPointGeometry(new ol.geom.Point(position), null);
+        }
       }
       iconStyle = new ol.style.Circle({
         radius: 8 * pixelRatio,
