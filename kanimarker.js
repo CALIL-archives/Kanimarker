@@ -282,7 +282,7 @@ Kanimarker = (function() {
   };
 
   Kanimarker.prototype.postcompose_ = function(event) {
-    var accuracy, accuracySize, circleStyle, context, direction, frameState, iconStyle, opacity, opacity_, pixel, pixelRatio, position, txt, vectorContext;
+    var accuracy, accuracySize, circleStyle, context, diff, direction, frameState, iconStyle, maxSize, opacity, opacity_, pixel, pixelRatio, position, txt, vectorContext;
     context = event.context;
     vectorContext = event.vectorContext;
     frameState = event.frameState;
@@ -326,10 +326,18 @@ Kanimarker = (function() {
     }
     if (position != null) {
       accuracySize = accuracy / frameState.viewState.resolution;
-      if (accuracySize > 3) {
+      maxSize = Math.max(this.map.getSize()[0], this.map.getSize()[1]);
+      if (accuracySize > 3 && accuracySize * pixelRatio < maxSize) {
         opacity_ = 0.2 * opacity;
         if (accuracySize < 30) {
           opacity_ = opacity_ * (accuracySize / 30);
+        }
+        if (accuracySize * pixelRatio > maxSize * 0.2) {
+          diff = accuracySize * pixelRatio - maxSize * 0.2;
+          opacity_ = opacity_ * (1 - diff / (maxSize * 0.4));
+          if (opacity_ < 0) {
+            opacity_ = 0;
+          }
         }
         circleStyle = new ol.style.Circle({
           snapToPixel: false,

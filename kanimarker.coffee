@@ -309,10 +309,17 @@ class Kanimarker
     # 非表示以外なら描画
     if position?
       accuracySize = (accuracy / frameState.viewState.resolution)
-      if accuracySize > 3
+      maxSize = Math.max(@map.getSize()[0],@map.getSize()[1])
+      if accuracySize > 3 and accuracySize * pixelRatio < maxSize
         opacity_ = 0.2 * opacity
         if accuracySize < 30
           opacity_ = opacity_ * (accuracySize / 30)
+        if accuracySize * pixelRatio > maxSize * 0.2
+          diff = accuracySize * pixelRatio - maxSize * 0.2
+          opacity_ = opacity_ * (1-diff / (maxSize * 0.4))
+          if opacity_<0
+            opacity_=0
+
         circleStyle = new ol.style.Circle(
           snapToPixel: false
           radius: accuracySize * pixelRatio
