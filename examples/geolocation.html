@@ -82,7 +82,7 @@
     var geolocation = new ol.Geolocation(({
         projection: map.getView().getProjection(),
         trackingOptions: {
-            maximumAge: 500,
+            maximumAge: 0,
             enableHighAccuracy: true,
             timeout: 600000
         }
@@ -92,7 +92,7 @@
         var accuracy = geolocation.getAccuracy();
         var heading = geolocation.getHeading() || 0;
         kanimarker.setPosition(position,accuracy);
-        kanimarker.setHeading(heading);
+        kanimarker.setHeading(heading*Math.PI/180);
     });
 
     geolocation.on('error', function() {
