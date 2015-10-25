@@ -1,6 +1,6 @@
-assert = require('assert')
-should = require('should')
-Kanimarker = require('../kanimarker')
+#assert = require('assert')
+#should = require('should')
+#Kanimarker = require('../kanimarker')
 
 describe 'Kanimarker', ->
   it 'No error on initialize', (done)->
