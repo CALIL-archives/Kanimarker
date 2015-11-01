@@ -113,7 +113,7 @@ class Kanimarker
           to = @position
           if from[0] - to[0] != 0 or from[1] - to[1] != 0
             froms = [from[0] - to[0], from[1] - to[1]]
-            if @animations.moveMode? and @animations.moveMode.animate()
+            if @animations.moveMode? and @animations.moveMode.animate(new Date())
               froms = [animations.current[0], animations.moveMode.current[1]]
             @animations.moveMode =
               start: new Date()
@@ -218,7 +218,7 @@ class Kanimarker
     if @accuracy is accuracy
       return
     # アニメーション中の場合は中間値からスタート
-    if @animations.accuracy? and @animations.accuracy.animate()
+    if @animations.accuracy? and @animations.accuracy.animate(new Date())
       from = @animations.accuracy.current
     else
       from = @accuracy

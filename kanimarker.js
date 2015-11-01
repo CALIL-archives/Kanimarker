@@ -102,7 +102,7 @@ Kanimarker = (function() {
           to = this.position;
           if (from[0] - to[0] !== 0 || from[1] - to[1] !== 0) {
             froms = [from[0] - to[0], from[1] - to[1]];
-            if ((this.animations.moveMode != null) && this.animations.moveMode.animate()) {
+            if ((this.animations.moveMode != null) && this.animations.moveMode.animate(new Date())) {
               froms = [animations.current[0], animations.moveMode.current[1]];
             }
             this.animations.moveMode = {
@@ -224,7 +224,7 @@ Kanimarker = (function() {
     if (this.accuracy === accuracy) {
       return;
     }
-    if ((this.animations.accuracy != null) && this.animations.accuracy.animate()) {
+    if ((this.animations.accuracy != null) && this.animations.accuracy.animate(new Date())) {
       from = this.animations.accuracy.current;
     } else {
       from = this.accuracy;
