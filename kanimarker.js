@@ -507,4 +507,10 @@ if (typeof exports !== 'undefined') {
   module.exports = Kanimarker;
 }
 
+// Deprecated
+// ひとまずこれまで通りグローバルで使えるようにしておく
+if (window) {
+  window.Kanimarker = Kanimarker;
+}
+
 },{}]},{},[1]);
