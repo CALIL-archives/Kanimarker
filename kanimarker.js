@@ -1,6 +1,44 @@
+/*
+ Kanimarker
+
+ Copyright (c) 2015 CALIL Inc.
+ This software is released under the MIT License.
+ http://opensource.org/licenses/mit-license.php
+ */
+
 class Kanimarker {
+  /**
+   * マップに現在地マーカーをインストールする
+   * @param map {ol.Map} マップオブジェクト
+   */
   constructor(map) {
+    // [ol.Map] マップオブジェクト（読み込み専用）
     this.map = map;
+
+    // [String] 表示モードの状態（読み込み専用）
+    // normal ... 通常モード
+    // centered ... 追従モード
+    // headingup ... ヘディングアップモード
+    this.mode = "normal";
+
+    // [Array<Number>] マーカーの位置（読み込み専用）
+    this.position = null;
+
+    // [Number] マーカーの角度（読み込み専用）
+    this.direction = 0;
+
+    // [Number] 計測精度・メートル（読み込み専用）
+    this.accuracy = 0;
+
+    // [Number] マーカー移動時のアニメーション時間(ms)
+    this.moveDuration = 2000;
+
+    // [Number] 計測精度のアニメーション時間(ms)
+    this.accuracyDuration = 2000;
+
+    this.animations = {};  // アニメーション用の内部ステート
+    this.debug_ = false;  // デバッグ表示の有無(内部ステート)
+    this.callbacks = {};  // コールバック用変数
 
     if (this.map != null) {
       this.map.on("postcompose", this.postcompose_, this);
@@ -9,15 +47,27 @@ class Kanimarker {
     }
   }
 
+  /**
+   * 現在進行中のアニメーションをキャンセルする
+   */
   cancelAnimation() {
     return this.animations = {};
   }
 
+  /**
+   * デバッグ表示の有無を設定する
+   * @param value {Boolean}
+   */
   setDebug(value) {
     this.debug_ = value;
     return this.map.render();
   }
 
+  /**
+   * 表示モードの設定をする
+   * @param mode {String} normal / centered / headingup
+   * @returns {boolean} 切り替えが成功したか
+   */
   setMode(mode) {
     var froms;
     var d;
@@ -75,7 +125,7 @@ class Kanimarker {
               to: 0,
               duration: d,
 
-              animate: function(frameStateTime) {
+              animate: function (frameStateTime) {
                 var time = (frameStateTime - this.start) / this.duration;
                 this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
                 return time <= 1;
@@ -101,7 +151,7 @@ class Kanimarker {
               to: [0, 0],
               duration: 800,
 
-              animate: function(frameStateTime) {
+              animate: function (frameStateTime) {
                 var time = (frameStateTime - this.start) / this.duration;
 
                 this.current = [
@@ -129,6 +179,13 @@ class Kanimarker {
     }
   }
 
+  /**
+   * 現在地を設定する
+   * @param toPosition {Array} 新しい現在地
+   * @param accuracy {Number} 計測精度 nullの場合は前回の値を維持
+   * @param silent {Boolean} 再描画抑制フラグ
+   * @returns {*}
+   */
   setPosition(toPosition, accuracy, silent = false) {
     var fromPosition;
 
@@ -163,7 +220,7 @@ class Kanimarker {
         to: toPosition.slice(),
         duration: this.moveDuration,
 
-        animate: function(frameStateTime) {
+        animate: function (frameStateTime) {
           var easing;
           var time = (frameStateTime - this.start) / this.duration;
 
@@ -192,12 +249,12 @@ class Kanimarker {
         to: 1,
         position: toPosition,
 
-        animate: function(frameStateTime) {
+        animate: function (frameStateTime) {
           var time = (frameStateTime - this.start) / 500;
 
-          this.current = this.from + ((this.to - this.from) * (function(x) {
-            return x;
-          })(time));
+          this.current = this.from + ((this.to - this.from) * (function (x) {
+              return x;
+            })(time));
 
           return time <= 1;
         }
@@ -217,12 +274,12 @@ class Kanimarker {
         to: 0,
         position: fromPosition,
 
-        animate: function(frameStateTime) {
+        animate: function (frameStateTime) {
           var time = (frameStateTime - this.start) / 500;
 
-          this.current = this.from + ((this.to - this.from) * (function(x) {
-            return x;
-          })(time));
+          this.current = this.from + ((this.to - this.from) * (function (x) {
+              return x;
+            })(time));
 
           return time <= 1;
         }
@@ -234,6 +291,12 @@ class Kanimarker {
     }
   }
 
+  /**
+   * 計測精度を設定する
+   * @param accuracy {Number} 計測精度（単位はメートル）
+   * @param silent {Boolean} 再描画抑制フラグ
+   * @returns {*}
+   */
   setAccuracy(accuracy, silent = false) {
     var from;
 
@@ -255,7 +318,7 @@ class Kanimarker {
       to: accuracy,
       duration: this.accuracyDuration,
 
-      animate: function(frameStateTime) {
+      animate: function (frameStateTime) {
         var time = (frameStateTime - this.start) / this.duration;
         this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
         return time <= 1;
@@ -267,6 +330,12 @@ class Kanimarker {
     }
   }
 
+  /**
+   * マーカーの向きを設定する
+   * @param direction {Number} 真北からの角度
+   * @param silent {Boolean} 再描画抑制フラグ
+   * @returns {*}
+   */
   setHeading(direction, silent = false) {
     if (direction === undefined || this.direction === direction) {
       return;
@@ -287,7 +356,7 @@ class Kanimarker {
       from: direction + diff,
       to: direction,
 
-      animate: function(frameStateTime) {
+      animate: function (frameStateTime) {
         var time = (frameStateTime - this.start) / 500;
         this.current = this.from + ((this.to - this.from) * ol.easing.easeOut(time));
         return time <= 1;
@@ -303,6 +372,9 @@ class Kanimarker {
     }
   }
 
+  /**
+   * nodoc マップ描画処理
+   */
   postcompose_(event) {
     var txt;
     var pixel;
@@ -479,6 +551,9 @@ class Kanimarker {
     }
   }
 
+  /**
+   * nodoc マップ描画前の処理
+   */
   precompose_(event) {
     var diff;
     var direction;
@@ -538,18 +613,32 @@ class Kanimarker {
     }
   }
 
+  /**
+   * nodoc ドラッグイベントの処理
+   */
   pointerdrag_() {
     if (this.mode !== "normal") {
       return this.setMode("normal");
     }
   }
 
+  /**
+   * イベントハンドラーを設定する
+   * @param type {String} イベント名
+   * @param listener {function} コールバック関数
+   * @returns {Kanimarker}
+   *
+   * @example change:headingup (newvalue) - 追従モードの変更を通知する
+   */
   on(type, listener) {
     this.callbacks[type] || (this.callbacks[type] = []);
     this.callbacks[type].push(listener);
     return this;
   }
 
+  /**
+   * nodoc イベントを通知する
+   */
   dispatch(type, data) {
     var chain = this.callbacks[type];
 
@@ -562,17 +651,6 @@ class Kanimarker {
     }
   }
 }
-
-Kanimarker.prototype.map = null;
-Kanimarker.prototype.mode = "normal";
-Kanimarker.prototype.position = null;
-Kanimarker.prototype.direction = 0;
-Kanimarker.prototype.accuracy = 0;
-Kanimarker.prototype.animations = {};
-Kanimarker.prototype.debug_ = false;
-Kanimarker.prototype.callbacks = {};
-Kanimarker.prototype.moveDuration = 2000;
-Kanimarker.prototype.accuracyDuration = 2000;
 
 if (typeof exports !== "undefined") {
   module.exports = Kanimarker;
