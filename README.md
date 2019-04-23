@@ -1,7 +1,6 @@
 # Kanimarker
 
-[![Circle CI](https://circleci.com/gh/CALIL/Kanimarker/tree/master.svg?style=svg)](https://circleci.com/gh/CALIL/Kanimarker/tree/master)
-[![Code Climate](https://codeclimate.com/github/CALIL/Kanimarker/badges/gpa.svg)](https://codeclimate.com/github/CALIL/Kanimarker)
+このプロジェクトは[さばとマップ](https://github.com/CALIL/sabatomap)に統合されました
 
 `Kanimarker` is "self-position" marker library for [OpenLayers 3](http://openlayers.org/). <br>
 Draw marker(GPS or other any locations) and manage animations for heading-up mode.<br>
