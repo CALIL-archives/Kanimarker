@@ -1,5 +1,12 @@
 # Kanimarker
 
+> **⚠️ このリポジトリはアーカイブされています**
+>
+> 配信に使っていた Amazon S3 バケットは既に削除されており、旧 URL は
+> 第三者が同名バケットを作成して任意のコードを配信できる状態でした。
+> このためデモ・ドキュメント・CDN のリンクを削除しています。
+> 動かす場合はこのリポジトリをクローンしてローカルで開いてください。
+
 このプロジェクトは[さばとマップ](https://github.com/CALIL/sabatomap)に統合されました
 
 `Kanimarker` is "self-position" marker library for [OpenLayers 3](http://openlayers.org/). <br>
@@ -9,7 +16,6 @@ Easy install and integration with OpenLayers 3.
 `Kanimarker` は [OpenLayers 3](http://openlayers.org/) で動作する現在地表示ライブラリです。
 GPSやその他の様々なロケーション（現在地）を表示するとともに、ヘディングアップモードや追従モードなどの
 ナビゲーションで標準的に必要とされるアニメーションを管理します。OpenLayers 3に簡単にインストールして連携できます。
-
 
 ## Usage
 
@@ -23,14 +29,16 @@ kanimarker.setPosition([137.528032,35.573162],50);
 
 ## Examples
 
-- [Full control demo](https://s3-ap-northeast-1.amazonaws.com/kanimarker/examples/demo.html)
-- [Geolocation demo](https://s3-ap-northeast-1.amazonaws.com/kanimarker/examples/geolocation.html)
+ホスティングを終了しました。リポジトリ内の `examples/demo.html` /
+`examples/geolocation.html` をローカルで開いてください。
 
 ## Document
 
-- [Kanimarker Class](https://s3-ap-northeast-1.amazonaws.com/kanimarker/doc/class/Kanimarker.html)
+リポジトリ内の `doc/class/Kanimarker.html` を参照してください。
 
-## [CDN](https://s3-ap-northeast-1.amazonaws.com/kanimarker/kanimarker.js)
+## CDN
+
+CDN での配信は終了しました。`kanimarker.js` をリポジトリから取得してください。
 
 ## License
 

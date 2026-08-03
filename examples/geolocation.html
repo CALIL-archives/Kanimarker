@@ -43,7 +43,7 @@
     var map = new ol.Map({
         layers: [new ol.layer.Tile({
             source: new ol.source.XYZ({
-                url: 'http://api.tiles.mapbox.com/v4/caliljp.ihofg5ie/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY2FsaWxqcCIsImEiOiJxZmNyWmdFIn0.hgdNoXE7D6i7SrEo6niG0w',
+                url: 'https://api.mapbox.com/v4/{YOUR_TILESET_ID}/{z}/{x}/{y}.png?access_token={YOUR_MAPBOX_ACCESS_TOKEN}',
                 maxZoom: 20
             })
         })],
